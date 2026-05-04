@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Passkey SDK Demo</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background-glow"></div>
+    <main class="layout">
+      <section class="card intro-card">
+        <p class="eyebrow">Passkey Web Client</p>
+        <h1>Auth + Payment Step-Up Playground</h1>
+        <p>
+          Demo UI for SDK scenarios: website login, sensitive action confirmation, and card payment
+          step-up with passkey fallback to 3DS.
+        </p>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Environment</h2>
+        <label>
+          API Base URL
+          <input id="apiUrl" type="text" value="http://localhost:4000" />
+        </label>
+        <label class="inline-toggle">
+          <input id="mockWebAuthn" type="checkbox" checked />
+          <span>Use mock WebAuthn transport (recommended for quick local tests)</span>
+        </label>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Identity</h2>
+        <label>
+          User ID
+          <input id="userId" type="text" value="user_1001" />
+        </label>
+        <label>
+          Username
+          <input id="username" type="email" value="demo@example.com" />
+        </label>
+        <label>
+          Display Name
+          <input id="displayName" type="text" value="Demo User" />
+        </label>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Payment</h2>
+        <label>
+          Payment Intent
+          <input id="paymentIntentId" type="text" value="pi_demo_001" />
+        </label>
+        <label>
+          Amount (minor units)
+          <input id="amountMinor" type="number" value="45000" min="1" />
+        </label>
+        <label>
+          Currency
+          <input id="currency" type="text" value="UAH" />
+        </label>
+        <label>
+          Merchant ID
+          <input id="merchantId" type="text" value="merchant_demo" />
+        </label>
+      </section>
+
+      <section class="card actions-card">
+        <h2>Flows</h2>
+        <div class="actions-grid">
+          <button id="registerBtn">Register Passkey</button>
+          <button id="loginBtn">Login with Passkey</button>
+          <button id="sensitiveBtn">Confirm Sensitive Action</button>
+          <button id="paymentBtn">Confirm Card Payment</button>
+        </div>
+      </section>
+
+      <section class="card log-card">
+        <h2>Flow Logs</h2>
+        <pre id="logs" aria-live="polite"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "name": "@olton/passkey",
+  "version": "0.1.0",
+  "description": "Passkey SDK for web authentication and payment step-up scenarios",
+  "main": "dist/prod/passkey.cjs.js",
+  "module": "dist/prod/passkey.es.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "dev": "vite --config vite.dev.config.ts",
+    "server": "tsx scripts/mock-backend-server.ts",
+    "build:dev": "node build.js dev",
+    "build:types": "tsc -p tsconfig.types.json",
+    "build:prod": "node build.js prod && npm run build:types",
+    "build": "npm run lint && npm run typecheck && npm run test && npm run build:prod",
+    "preview": "vite preview --config vite.prod.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint src tests demo scripts build.js vite.dev.config.ts vite.prod.config.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Serhii Pimenov",
+    "email": "serhii@pimenov.com.ua",
+    "url": "https://pimenov.com.ua"
+  },
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "cross-env": "^10.1.0",
+    "jsdom": "^29.1.1",
+    "oxlint": "^1.62.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  }
+}
