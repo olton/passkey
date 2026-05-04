@@ -3,7 +3,7 @@
 ## 1. Start mock backend
 
 ```bash
-npm run serve:mock-api
+npm run server
 ```
 
 Default URL: `http://localhost:4000`
