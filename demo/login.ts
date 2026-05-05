@@ -82,6 +82,7 @@ passkeyLoginBtn.addEventListener("click", () => {
 
 clearLogsBtn.addEventListener("click", () => {
   logs.textContent = "";
+  resetStatus();
   appendLog("Logs cleared.");
 });
 
@@ -190,6 +191,14 @@ function appendLog(message: string): void {
 function setStatus(message: string, tone: "ok" | "pending" | "error"): void {
   status.textContent = message;
   status.className = tone === "ok" ? "status-ok" : tone === "pending" ? "status-pending" : "status-error";
+}
+
+/**
+ * Resets status text and style to initial neutral state.
+ */
+function resetStatus(): void {
+  status.textContent = "Ready";
+  status.className = "";
 }
 
 /**
