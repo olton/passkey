@@ -5,6 +5,15 @@ import type {
   PaymentStepUpResult,
 } from "../types";
 
+export interface CardFormProps {
+  cardNumber: string;
+  expirationMonth: string;
+  expirationYear: string;
+  cvc: string;
+  cardHolderName?: string;
+  email?: string;
+}
+
 /**
  * Orchestrates passkey-based card payment step-up flow.
  */
