@@ -2,6 +2,24 @@
 
 Passkey SDK - is a library for web authentication using passkey features such as passwordless login, sensitive action confirmation, and payment step-up.
 
+## Table of Contents
+
+- [Platform authenticators](#platform-authenticators)
+- [Documentation Index](#documentation-index)
+- [Key Benefits](#key-benefits)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Client-Backend Integration (Without Demo Server)](#client-backend-integration-without-demo-server)
+- [Module Exports](#module-exports)
+- [Usage Examples](#usage-examples)
+- [Run Demo Locally](#run-demo-locally)
+- [Build Outputs](#build-outputs)
+- [Scripts](#scripts)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+
 ## Platform authenticators:
 - On Windows this library can be used with Windows Hello as a platform authenticator.
 - On macOS and iOS, it can be used with Touch ID or Face ID as platform authenticators.
@@ -16,6 +34,16 @@ Platform runbooks:
 - Android: [docs/android-demo.md](docs/android-demo.md)
 - iOS: [docs/ios-demo.md](docs/ios-demo.md)
 - Linux: [docs/linux-demo.md](docs/linux-demo.md)
+
+## Documentation Index
+
+- Platform matrix (capabilities by OS/browser): [docs/platform-matrix.md](docs/platform-matrix.md)
+- API contract (request/response schema): [docs/api-contract.md](docs/api-contract.md)
+- Demo runbook (end-to-end local demo flow): [docs/demo-runbook.md](docs/demo-runbook.md)
+- Windows Hello setup: [docs/windows-hello.md](docs/windows-hello.md)
+- Android setup: [docs/android-demo.md](docs/android-demo.md)
+- iOS setup: [docs/ios-demo.md](docs/ios-demo.md)
+- Linux setup: [docs/linux-demo.md](docs/linux-demo.md)
 
 ## Key Benefits
 
@@ -424,12 +452,14 @@ Tip: keep `Use mock WebAuthn transport` enabled for predictable local behavior.
 
 For real platform authenticator tests, disable `Use mock WebAuthn transport` and set `API Base URL` to your reachable backend URL (for local machine tests, typically `http://localhost:4100`).
 
+For complete local demo steps and troubleshooting, see [docs/demo-runbook.md](docs/demo-runbook.md).
+
 Dedicated setup runbooks:
 
 - Windows Hello: [docs/windows-hello.md](docs/windows-hello.md)
 - Android: [docs/android-demo.md](docs/android-demo.md)
 - iOS: [docs/ios-demo.md](docs/ios-demo.md)
-- Linux (Ubuntu 24.04): [docs/linux-ubuntu-24-04-demo.md](docs/linux-ubuntu-24-04-demo.md)
+- Linux: [docs/linux-demo.md](docs/linux-demo.md)
 
 ## Build Outputs
 
