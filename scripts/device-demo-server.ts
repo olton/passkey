@@ -30,7 +30,7 @@ interface SensitiveVaultRecord {
 }
 
 const ROUTES = {
-  registrationOptions: ["/passkeys/registration/options", "Provides registration options for platform passkeys (Windows Hello)."],
+  registrationOptions: ["/passkeys/registration/options", "Provides registration options for platform passkeys (For example: Windows Hello)."],
   registrationVerify: ["/passkeys/registration/verify", "Verifies registration response payload."],
   authenticationOptions: ["/passkeys/authentication/options", "Provides login challenge requiring local user verification."],
   authenticationVerify: ["/passkeys/authentication/verify", "Verifies authentication assertion payload."],
@@ -91,10 +91,8 @@ server.listen(PORT, () => {
     console.log(`  ${termx.bold.cyanBright.write(path)} - ${termx.gray.write(description)}`);
   }
 
-  console.log("[device-demo] Device requirements:");
-  console.log("  - Disable mock transport in UI");
-  console.log(`  - Set API Base URL to http://localhost:${PORT}`);
-  console.log("  - Configure Windows Hello Face or PIN in Settings");
+  console.log("[device-demo] Demo required is a platform with WebAuthn support and configured user verification method (Windows Hello, Touch ID, Face ID, etc).");
+  console.log("");
 });
 
 /**

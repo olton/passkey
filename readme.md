@@ -118,7 +118,19 @@ const adapter = createFetchBackendAdapter({
 });
 ```
 
-See full request/response schema in `docs/api-contract.md`.
+All routes:
+```ts
+export const DEFAULT_PASSKEY_BACKEND_ENDPOINTS: Readonly<PasskeyBackendEndpoints> = {
+  beginRegistration: "/passkeys/registration/options",
+  finishRegistration: "/passkeys/registration/verify",
+  beginAuthentication: "/passkeys/authentication/options",
+  finishAuthentication: "/passkeys/authentication/verify",
+  beginPaymentStepUp: "/passkeys/payments/options",
+  finishPaymentStepUp: "/passkeys/payments/verify",
+};
+```
+
+See full request/response schema in [docs/api-contract.md](docs/api-contract.md).
 
 ## Module Exports
 
@@ -435,3 +447,5 @@ Dedicated setup runbooks:
 - `npm run test` - run test suite
 - `npm run build:prod` - build production bundles and declarations
 - `npm run build` - lint + typecheck + test + production build
+- `npm run lint` - run linter
+- `npm run typecheck` - run TypeScript type checker
