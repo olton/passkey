@@ -1,30 +1,30 @@
 # @olton/passkey
 
-Passkey SDK for web authentication and payment step-up scenarios.
+Passkey SDK для вебавтентифікації та сценаріїв step-up перевірки платежів.
 
-The library helps you implement WebAuthn-based passkey flows for:
+Бібліотека допомагає реалізувати WebAuthn-потоки passkey для:
 
-- passwordless login
-- sensitive action confirmation
-- payment step-up as an alternative to 3DS (with fallback)
-- scenario-driven orchestration for web clients
+- безпарольного входу
+- підтвердження чутливих дій
+- step-up перевірки платежів як альтернативи 3DS (із fallback)
+- сценарно-орієнтованої оркестрації для вебклієнтів
 
-## Features
+## Можливості
 
-- typed WebAuthn DTOs for backend contracts
-- browser WebAuthn transport service
-- pluggable backend adapter
-- high-level auth and payment services
-- single facade client for integration
-- generated TypeScript declaration files
+- типізовані WebAuthn DTO для контрактів бекенда
+- браузерний транспортний сервіс WebAuthn
+- плагінний адаптер бекенда
+- високорівневі сервіси автентифікації та платежів
+- єдиний фасадний клієнт для інтеграції
+- згенеровані файли декларацій TypeScript
 
-## Installation
+## Встановлення
 
 ```bash
 npm i @olton/passkey
 ```
 
-## Quick Start
+## Швидкий старт
 
 ```ts
 import {
@@ -51,9 +51,97 @@ const loginResult = await passkey.login({
 });
 ```
 
-## Usage Examples
+## Експорти модуля
 
-### 1) Passwordless Login
+Нижче наведено повний перелік експортів із `@olton/passkey`.
+
+### Фасад клієнта
+
+- `createPasskeyClient` - фабрика для створення `PasskeyClient`.
+- `PasskeyClient` - головний фасад SDK для реєстрації, логіну, step-up та сценаріїв.
+- `PasskeyClientConfig` - конфігурація фасаду (адаптер бекенда та опційний WebAuthn-сервіс).
+
+### Адаптер бекенда
+
+- `PasskeyBackendAdapter` - контракт API-адаптера для registration/auth/payment потоків.
+- `PasskeyBackendEndpoints` - набір endpoint-шляхів для fetch-адаптера.
+- `FetchBackendAdapterConfig` - конфігурація fetch-адаптера (base URL, заголовки, endpoint-и).
+- `createFetchBackendAdapter` - створює адаптер для інтеграції з вашим бекендом через `fetch`.
+
+### Сервіси автентифікації та платежів
+
+- `PasskeyAuthService` - високорівневий сервіс для реєстрації та автентифікації.
+- `PaymentStepUpService` - оркестрація passkey step-up підтвердження карткової оплати.
+- `WebClientUseCases` - сценарно-орієнтований orchestrator для вебклієнта.
+
+### Сценарні контракти (use cases)
+
+- `LoginUseCaseRequest` - payload для сценарію входу.
+- `PaymentStepUpUseCaseRequest` - payload для сценарію payment step-up.
+- `SensitiveActionUseCaseRequest` - payload для сценарію підтвердження чутливої дії.
+- `PasswordlessRecoveryUseCaseRequest` - payload для сценарію passwordless recovery.
+- `WebClientUseCaseRequest` - union усіх підтриманих сценарних запитів.
+- `WebClientUseCaseResponse` - уніфікований тип відповіді сценарного orchestrator-а.
+
+### WebAuthn транспорт
+
+- `WebAuthnService` - браузерний транспортний сервіс WebAuthn (створення credential + assertion).
+
+### Помилки SDK
+
+- `PasskeyError` - базова помилка SDK.
+- `PasskeyNotSupportedError` - браузер/середовище не підтримує WebAuthn.
+- `UserCancelledError` - користувач скасував passkey-церемонію.
+- `BackendAdapterError` - помилки HTTP/контракту при роботі адаптера бекенда.
+
+### Утиліти base64url
+
+- `base64UrlToArrayBuffer` - перетворює base64url у `ArrayBuffer`.
+- `arrayBufferToBase64Url` - перетворює `ArrayBuffer` у base64url.
+- `uint8ArrayToBase64Url` - перетворює `Uint8Array` у base64url.
+- `base64UrlToUint8Array` - перетворює base64url у `Uint8Array`.
+
+### Базові типи домену та рішення
+
+- `Base64Url` - рядок у форматі base64url.
+- `StepUpDecision` - рішення step-up перевірки: approve/fallback/reject.
+- `WebClientScenario` - перелік бізнес-сценаріїв вебклієнта.
+
+### Профіль користувача, ризик-сигнали, платіжний контекст
+
+- `PasskeyUser` - дані користувача для реєстрації passkey.
+- `RiskSignals` - опційні сигнали ризику для fraud/risk-аналізу.
+- `CardPaymentContext` - бізнес-контекст карткового платежу.
+
+### WebAuthn JSON DTO
+
+- `PublicKeyCredentialDescriptorJSON` - JSON-представлення credential descriptor.
+- `PublicKeyCredentialUserEntityJSON` - JSON-представлення користувача WebAuthn.
+- `PublicKeyCredentialCreationOptionsJSON` - JSON-опції створення credential (registration).
+- `PublicKeyCredentialRequestOptionsJSON` - JSON-опції assertion (authentication/payment).
+- `CredentialAttestationJSON` - серіалізований результат реєстрації passkey.
+- `CredentialAssertionJSON` - серіалізований результат автентифікації passkey.
+
+### Запити до бекенда
+
+- `BeginRegistrationInput` - payload запиту на отримання registration options.
+- `FinishRegistrationInput` - payload запиту на верифікацію реєстрації.
+- `BeginAuthenticationInput` - payload запиту на отримання authentication options.
+- `FinishAuthenticationInput` - payload запиту на верифікацію автентифікації.
+- `BeginPaymentStepUpInput` - payload запиту на отримання payment step-up options.
+- `FinishPaymentStepUpInput` - payload запиту на верифікацію payment step-up.
+
+### Результати верифікації та сесія
+
+- `AuthSession` - сесійні дані після успішної автентифікації.
+- `RegistrationVerificationResult` - результат верифікації реєстрації.
+- `AuthenticationVerificationResult` - результат верифікації автентифікації.
+- `PaymentStepUpVerificationResult` - результат верифікації payment step-up на бекенді.
+- `PaymentStepUpResult` - фінальний результат step-up для клієнта (включно з флагами fallback/3DS).
+
+## Приклади використання
+
+### 1) Безпарольний вхід
 
 ```ts
 const loginResult = await passkey.login({
@@ -64,11 +152,11 @@ const loginResult = await passkey.login({
 });
 
 if (loginResult.verified) {
-	console.log("Logged in");
+	console.log("Вхід виконано");
 }
 ```
 
-### 2) Sensitive Action Confirmation
+### 2) Підтвердження чутливої дії
 
 ```ts
 const confirmResult = await passkey.confirmSensitiveAction({
@@ -79,7 +167,7 @@ const confirmResult = await passkey.confirmSensitiveAction({
 });
 ```
 
-### 3) Card Payment Step-Up
+### 3) Step-Up перевірка оплати карткою
 
 ```ts
 const paymentResult = await passkey.confirmCardPayment({
@@ -93,11 +181,11 @@ const paymentResult = await passkey.confirmCardPayment({
 });
 
 if (paymentResult.shouldTrigger3DS) {
-	// fallback to classic 3DS challenge
+	// fallback на класичний 3DS-челендж
 }
 ```
 
-### 4) Scenario-Driven Flow
+### 4) Сценарно-орієнтований потік
 
 ```ts
 const result = await passkey.runUseCase({
@@ -114,43 +202,43 @@ const result = await passkey.runUseCase({
 });
 ```
 
-## Run Demo Locally
+## Запуск демо локально
 
-### 1) Start mock backend
+### 1) Запустіть mock-бекенд
 
 ```bash
 npm run server
 ```
 
-Default URL: `http://localhost:4000`
+URL за замовчуванням: `http://localhost:4000`
 
-### 2) Start demo UI
+### 2) Запустіть демо-інтерфейс
 
 ```bash
 npm run dev
 ```
 
-Open: `http://localhost:5173`
+Відкрийте: `http://localhost:5173`
 
-### 3) Try flows in demo
+### 3) Спробуйте сценарії в демо
 
-- Register Passkey
-- Login with Passkey
-- Confirm Sensitive Action
-- Confirm Card Payment
+- Зареєструйте passkey
+- Виконайте вхід за допомогою passkey
+- Підтвердьте чутливу дію
+- Підтвердьте оплату карткою
 
-Tip: keep `Use mock WebAuthn transport` enabled for predictable local behavior.
+Порада: залишайте `Use mock WebAuthn transport` увімкненим для передбачуваної локальної поведінки.
 
-## Build Outputs
+## Результати збірки
 
 - ESM bundle: `dist/prod/passkey.es.js`
 - CJS bundle: `dist/prod/passkey.cjs.js`
 - Type declarations: `dist/types/index.d.ts`
 
-## Scripts
+## Скрипти
 
-- `npm run dev` - run demo UI
-- `npm run server` - run mock backend
-- `npm run test` - run test suite
-- `npm run build:prod` - build production bundles and declarations
-- `npm run build` - lint + typecheck + test + production build
+- `npm run dev` - запустити демо-інтерфейс
+- `npm run server` - запустити mock-бекенд
+- `npm run test` - запустити тестовий набір
+- `npm run build:prod` - зібрати production-бандли та декларації
+- `npm run build` - lint + typecheck + test + production збірка

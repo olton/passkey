@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "vite --config vite.dev.config.ts",
     "server": "tsx scripts/mock-backend-server.ts",
+    "demo": "npm run dev",
+    "start": "concurrently \"npm run server\" \"npm run demo\"",
     "build:dev": "node build.js dev",
     "build:types": "tsc -p tsconfig.types.json",
     "build:prod": "node build.js prod && npm run build:types",
@@ -27,6 +29,7 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
+    "@olton/terminal": "^0.6.0",
     "@types/node": "^25.6.0",
     "cross-env": "^10.1.0",
     "jsdom": "^29.1.1",
