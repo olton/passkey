@@ -31,7 +31,7 @@
         </p>
       </section>
 
-      <section class="card controls-card">
+      <section class="card intro-card">
         <h2>Environment</h2>
         <label>
           API Base URL
@@ -61,14 +61,16 @@
           Card Number
           <input id="cardNumber" type="text" value="4111111111111111" inputmode="numeric" autocomplete="cc-number" />
         </label>
-        <label>
-          Expiry (MM/YY)
-          <input id="cardExpiry" type="text" value="12/29" autocomplete="cc-exp" />
-        </label>
-        <label>
-          CVV
-          <input id="cardCvv" type="password" value="123" inputmode="numeric" autocomplete="cc-csc" />
-        </label>
+        <div class="expiration-data">
+          <label>
+            Expiry (MM/YY)
+            <input id="cardExpiry" type="text" value="12/29" autocomplete="cc-exp" />
+          </label>
+          <label>
+            CVV
+            <input id="cardCvv" type="password" value="123" inputmode="numeric" autocomplete="cc-csc" />
+          </label>
+        </div>
         <label>
           Cardholder Name
           <input id="cardholder" type="text" value="Demo User" autocomplete="cc-name" />
@@ -95,7 +97,7 @@
         <h2>Stored Card Object</h2>
         <label>
           Stored Token Data
-          <textarea id="storedCardObject" rows="8" readonly placeholder="Encrypted card object will be shown here"></textarea>
+          <textarea id="storedCardObject" rows="9" readonly placeholder="Encrypted card object will be shown here"></textarea>
         </label>
       </section>
 
@@ -114,7 +116,7 @@
         <h2>Status</h2>
         <p id="status" style="margin-bottom: 10px;">Ready</p>
         <p style="font-size: 0.9rem;">
-          Use device backend and real platform authenticator (Windows Hello)
+          Use device backend and real platform authenticator (For example: Windows Hello)
           for passkey prompts.
         </p>
       </section>

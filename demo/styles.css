@@ -76,6 +76,15 @@ body {
   grid-column: span 12;
 }
 
+.expiration-data {
+  display: flex;
+  gap: 12px;
+
+  label {
+    flex: 1;
+  }
+}
+
 h1,
 h2 {
   margin: 0 0 10px;
