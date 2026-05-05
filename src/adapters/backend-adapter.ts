@@ -82,7 +82,12 @@ export interface FetchBackendAdapterConfig {
   fetchImpl?: typeof fetch;
 }
 
-const DEFAULT_ENDPOINTS: PasskeyBackendEndpoints = {
+/**
+ * Default endpoint paths expected by the fetch backend adapter.
+ *
+ * Exported so frontend/backend teams can share one visible source of truth.
+ */
+export const DEFAULT_PASSKEY_BACKEND_ENDPOINTS: Readonly<PasskeyBackendEndpoints> = {
   beginRegistration: "/passkeys/registration/options",
   finishRegistration: "/passkeys/registration/verify",
   beginAuthentication: "/passkeys/authentication/options",
@@ -98,7 +103,7 @@ export function createFetchBackendAdapter(
   config: FetchBackendAdapterConfig,
 ): PasskeyBackendAdapter {
   const endpoints: PasskeyBackendEndpoints = {
-    ...DEFAULT_ENDPOINTS,
+    ...DEFAULT_PASSKEY_BACKEND_ENDPOINTS,
     ...config.endpoints,
   };
 

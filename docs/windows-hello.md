@@ -32,32 +32,23 @@ This server returns stricter WebAuthn options:
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+- Login/password onboarding demo page: `http://localhost:5173/login.html`.
+- Sensitive vault demo page: `http://localhost:5173/sensitive.html`.
+- Card payment demo page: `http://localhost:5173/card-pay.html`.
 
-Sensitive vault demo page: `http://localhost:5173/sensitive.html`.
-
-## 4. Switch UI to real WebAuthn mode
-
-1. Set `API Base URL` to `http://localhost:4100`.
-2. Disable `Use mock WebAuthn transport`.
-3. Click `Register Passkey`.
-4. Approve Windows Hello prompt with Face or PIN.
-5. Click `Login with Passkey` to verify the assertion flow.
-
-## 5. Browser and environment requirements
+## 4. Browser and environment requirements
 
 - Use a modern browser with WebAuthn support (Edge or Chrome recommended on Windows).
 - Use `localhost` or HTTPS origin.
 - Keep OS and browser updated.
 - Ensure no policy blocks WebAuthn in enterprise-managed environments.
 
-## 6. Troubleshooting
+## 5. Troubleshooting
 
-- If no prompt appears: verify mock transport is disabled.
 - If registration fails quickly: verify Windows Hello PIN is configured.
 - If ceremony is cancelled: retry and approve biometric/pin prompt.
 - If RP mismatch errors appear: ensure backend RP ID stays `localhost` for local run.
 
-## 7. Important limitation
+## 6. Verification methods
 
-WebAuthn cannot force Face-only verification. Platform authenticator chooses available Windows Hello method (Face, fingerprint, or PIN).
+Platform authenticator chooses available Windows Hello method (Face, fingerprint, or PIN).
