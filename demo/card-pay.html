@@ -32,9 +32,8 @@
       </section>
 
       <section class="card intro-card">
-        <h2>Environment</h2>
-        <label>
-          API Base URL
+        <h2>API Base URL</h2>
+        <label for="apiUrl">
           <input id="apiUrl" type="text" value="http://localhost:4100" />
         </label>
       </section>
@@ -61,7 +60,7 @@
           Card Number
           <input id="cardNumber" type="text" value="4111111111111111" inputmode="numeric" autocomplete="cc-number" />
         </label>
-        <div class="expiration-data">
+        <div class="row-data">
           <label>
             Expiry (MM/YY)
             <input id="cardExpiry" type="text" value="12/29" autocomplete="cc-exp" />
@@ -80,17 +79,23 @@
       <section class="card controls-card">
         <h2>Payment Context</h2>
         <label>
-          Amount (minor units)
+          Amount (minor units - cents)
           <input id="amountMinor" type="number" value="2500" min="1" />
         </label>
         <label>
           Currency
           <input id="currency" type="text" value="UAH" />
         </label>
-        <label>
-          Merchant ID
-          <input id="merchantId" type="text" value="merchant_card_demo" />
-        </label>
+        <div class="row-data">
+          <label>
+            Terminal ID
+            <input id="terminalId" type="text" value="terminal_123" />
+          </label>
+          <label>
+            Merchant ID
+            <input id="merchantId" type="text" value="merchant_123" />
+          </label>
+        </div>
       </section>
 
       <section class="card controls-card">
