@@ -449,3 +449,26 @@ Dedicated setup runbooks:
 - `npm run build` - lint + typecheck + test + production build
 - `npm run lint` - run linter
 - `npm run typecheck` - run TypeScript type checker
+
+---
+
+## Contributing
+
+Contributions are welcome! Please open issues for bugs or feature requests, and submit pull requests for improvements.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Support
+
+If you like this project, please consider supporting it by:
+
++ Star this repository on GitHub
++ Sponsor this project on GitHub Sponsors
++ **PayPal** to `serhii@pimenov.com.ua`.
++ [**Patreon**](https://www.patreon.com/metroui)
++ [**Buy me a coffee**](https://buymeacoffee.com/pimenov)
+
+---
+
+Copyright (c) 2026 by [Serhii Pimenov](https://pimenov.com.ua). All Rights Reserved.
