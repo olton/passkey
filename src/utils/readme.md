@@ -1,20 +1,20 @@
 # utils module
 
-## Призначення
+## Purpose
 
-Набір утиліт для конвертації між форматами WebAuthn:
+A utility set for conversion between WebAuthn formats:
 
 - `ArrayBuffer` <-> `Base64Url`
 - `Uint8Array` <-> `Base64Url`
 
-## Експортовані функції
+## Exported Functions
 
 - `base64UrlToArrayBuffer`
 - `arrayBufferToBase64Url`
 - `base64UrlToUint8Array`
 - `uint8ArrayToBase64Url`
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { base64UrlToArrayBuffer, arrayBufferToBase64Url } from "../utils";
@@ -23,7 +23,7 @@ const rawChallenge = base64UrlToArrayBuffer("m8W4...rQ");
 const encoded = arrayBufferToBase64Url(rawChallenge);
 ```
 
-## Примітки
+## Notes
 
-- Утиліти працюють і в браузері, і в Node runtime.
-- Для Node використовується `globalThis.Buffer`, якщо `atob/btoa` недоступні.
+- Utilities work in both browser and Node runtimes.
+- In Node, `globalThis.Buffer` is used when `atob/btoa` are unavailable.

@@ -1,16 +1,16 @@
 # adapters module
 
-## Призначення
+## Purpose
 
-Модуль інкапсулює взаємодію з backend API для всіх passkey-сценаріїв.
+This module encapsulates backend API interaction for all passkey scenarios.
 
-## Основні сутності
+## Core Entities
 
-- `PasskeyBackendAdapter` контракт адаптера.
-- `createFetchBackendAdapter` готова реалізація на `fetch`.
-- `PasskeyBackendEndpoints` кастомізація URL для ваших API маршрутів.
+- `PasskeyBackendAdapter` adapter contract.
+- `createFetchBackendAdapter` ready-to-use implementation based on `fetch`.
+- `PasskeyBackendEndpoints` URL customization for your API routes.
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { createFetchBackendAdapter } from "../adapters";
@@ -24,8 +24,8 @@ const adapter = createFetchBackendAdapter({
 });
 ```
 
-## Примітки
+## Notes
 
-- Адаптер очікує JSON body і POST запити.
-- Якщо API повертає non-JSON помилки, вони будуть доступні як `details` в `BackendAdapterError`.
-- Для SSR або тестів можна передати `fetchImpl`.
+- The adapter expects JSON request bodies and POST requests.
+- If the API returns non-JSON errors, they are exposed as `details` in `BackendAdapterError`.
+- For SSR or tests, you can provide `fetchImpl`.

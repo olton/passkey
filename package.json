@@ -7,9 +7,11 @@
   "types": "dist/types/index.d.ts",
   "scripts": {
     "dev": "vite --config vite.dev.config.ts",
-    "server": "tsx scripts/mock-backend-server.ts",
+    "server:mock": "tsx scripts/mock-backend-server.ts",
+    "server:device": "tsx scripts/device-demo-server.ts",
     "demo": "npm run dev",
-    "start": "concurrently \"npm run server\" \"npm run demo\"",
+    "start:mock": "concurrently \"npm run server:mock\" \"npm run demo\"",
+    "start:device": "concurrently \"npm run server:device\" \"npm run demo\"",
     "build:dev": "node build.js dev",
     "build:types": "tsc -p tsconfig.types.json",
     "build:prod": "node build.js prod && npm run build:types",

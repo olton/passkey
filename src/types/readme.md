@@ -1,35 +1,35 @@
 # types module
 
-## Призначення
+## Purpose
 
-Модуль містить доменні типи для всіх passkey-сценаріїв у web client:
+This module contains domain types for all passkey scenarios in a web client:
 
-- Passwordless логін на сайті.
-- Підтвердження чутливих дій (наприклад, зміна email, вивід коштів, підпис договору).
-- Step-up для оплати карткою як альтернатива 3DS.
+- Passwordless login.
+- Sensitive action confirmation (for example: email change, payout withdrawal, contract signing).
+- Card payment step-up as an alternative to 3DS.
 - Passwordless recovery.
 
-## Ключові групи типів
+## Key Type Groups
 
-- WebAuthn JSON DTO:
+- WebAuthn JSON DTOs:
   - `PublicKeyCredentialCreationOptionsJSON`
   - `PublicKeyCredentialRequestOptionsJSON`
   - `CredentialAttestationJSON`
   - `CredentialAssertionJSON`
-- Бізнес-контекст:
+- Business context:
   - `PasskeyUser`
   - `CardPaymentContext`
   - `RiskSignals`
-- Контракти API:
+- API contracts:
   - `BeginRegistrationInput` / `FinishRegistrationInput`
   - `BeginAuthenticationInput` / `FinishAuthenticationInput`
   - `BeginPaymentStepUpInput` / `FinishPaymentStepUpInput`
-- Результати:
+- Results:
   - `RegistrationVerificationResult`
   - `AuthenticationVerificationResult`
   - `PaymentStepUpResult`
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import type { BeginPaymentStepUpInput } from "../types";
@@ -45,8 +45,8 @@ const payload: BeginPaymentStepUpInput = {
 };
 ```
 
-## Примітки
+## Notes
 
-- Для байтових полів WebAuthn використовується `Base64Url`.
-- Тип `StepUpDecision` одразу моделює стратегію fallback на 3DS.
-- Тип `WebClientScenario` зручний для оркестрації use-case у UI-слої.
+- `Base64Url` is used for WebAuthn byte fields.
+- `StepUpDecision` directly models fallback-to-3DS strategy.
+- `WebClientScenario` is convenient for use-case orchestration in the UI layer.

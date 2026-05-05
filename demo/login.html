@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Passkey Login Demo</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background-glow"></div>
+    <main class="layout">
+      <section class="card intro-card">
+        <p class="eyebrow">Password To Passkey</p>
+        <h1>Login/Password + Save Passkey On This Device</h1>
+        <p>
+          This dedicated client demo shows the transition flow: the user enters
+          username/password, completes password login, and then saves a passkey
+          on a real device using Windows Hello (Face/PIN).
+        </p>
+        <p style="margin-top: 10px;">
+          The password is not stored in the passkey. A passkey contains a
+          cryptographic key stored in the device platform authenticator.
+        </p>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Environment</h2>
+        <label>
+          API Base URL
+          <input id="apiUrl" type="text" value="http://localhost:4100" />
+        </label>
+        <label>
+          Display Name
+          <input id="displayName" type="text" value="Demo User" />
+        </label>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Credentials</h2>
+        <label>
+          Username / Email
+          <input id="username" type="email" value="demo@example.com" autocomplete="username webauthn" />
+        </label>
+        <label>
+          Password
+          <input id="password" type="password" placeholder="min 8 chars" autocomplete="current-password" />
+        </label>
+      </section>
+
+      <section class="card actions-card">
+        <h2>Actions</h2>
+        <div class="actions-grid" style="grid-template-columns: 1fr;">
+          <button id="savePasskeyBtn">1) Login With Password + Save Passkey</button>
+          <button id="passkeyLoginBtn">2) Login With Saved Passkey</button>
+          <button id="clearLogsBtn">Clear Logs</button>
+        </div>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Status</h2>
+        <p id="status" style="margin-bottom: 10px;">Ready</p>
+        <p style="font-size: 0.9rem;">
+          Before running: open Windows Settings -> Accounts -> Sign-in options
+          and make sure Windows Hello is configured.
+        </p>
+      </section>
+
+      <section class="card log-card">
+        <h2>Flow Logs</h2>
+        <pre id="logs" aria-live="polite"></pre>
+      </section>
+    </main>
+
+    <div id="resultModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="resultModalTitle">
+      <div class="modal-card">
+        <h2 id="resultModalTitle">OK</h2>
+        <p id="resultModalText">Login completed successfully.</p>
+        <button id="closeResultModalBtn" type="button">Close</button>
+      </div>
+    </div>
+
+    <script type="module" src="./login.ts"></script>
+  </body>
+</html>

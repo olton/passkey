@@ -1,17 +1,17 @@
 # errors module
 
-## Призначення
+## Purpose
 
-Централізований шар помилок SDK для уніфікованої обробки збоїв у застосунку.
+Centralized SDK error layer for consistent failure handling in your application.
 
-## Доступні помилки
+## Available Errors
 
-- `PasskeyError` базовий клас.
-- `PasskeyNotSupportedError` браузер не підтримує WebAuthn.
-- `UserCancelledError` користувач скасував біометричний промпт.
-- `BackendAdapterError` помилка HTTP/API взаємодії.
+- `PasskeyError` base class.
+- `PasskeyNotSupportedError` browser does not support WebAuthn.
+- `UserCancelledError` user cancelled biometric prompt.
+- `BackendAdapterError` HTTP/API interaction error.
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { UserCancelledError } from "../errors";
@@ -25,7 +25,7 @@ try {
 }
 ```
 
-## Примітки
+## Notes
 
-- Рекомендується у UI розділяти `UserCancelledError` та реальні технічні помилки.
-- `BackendAdapterError` містить `status` і `details` для логування або Sentry breadcrumbs.
+- In UI, it is recommended to distinguish `UserCancelledError` from real technical errors.
+- `BackendAdapterError` includes `status` and `details` for logging or Sentry breadcrumbs.

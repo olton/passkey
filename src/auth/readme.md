@@ -1,17 +1,17 @@
 # auth module
 
-## Призначення
+## Purpose
 
-Високорівневий модуль для passkey-аутентифікації на сайті.
+High-level module for passkey authentication in web applications.
 
-## Що реалізовано
+## What Is Implemented
 
-- `register` реєстрація passkey.
-- `login` passwordless логін на сайті.
-- `confirmSensitiveAction` підтвердження ризикових дій.
-- `authenticate` універсальний метод для нестандартних сценаріїв.
+- `register` passkey registration.
+- `login` passwordless login.
+- `confirmSensitiveAction` confirmation for risk-sensitive actions.
+- `authenticate` universal method for custom scenarios.
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { PasskeyAuthService } from "../auth";
@@ -29,8 +29,8 @@ await auth.register({
 const loginResult = await auth.login({ username: "john@company.com" });
 ```
 
-## Примітки
+## Notes
 
-- Модуль залежить від `PasskeyBackendAdapter` і `WebAuthnService`.
-- Для MFA-подібних сценаріїв задавайте різні `purpose` і `context`.
-- Backend повинен валідовувати challenge, origin, rpId і signature counter.
+- The module depends on `PasskeyBackendAdapter` and `WebAuthnService`.
+- For MFA-like scenarios, provide different `purpose` and `context` values.
+- Backend must validate challenge, origin, rpId, and signature counter.

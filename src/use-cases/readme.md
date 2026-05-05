@@ -1,17 +1,17 @@
 # use-cases module
 
-## Призначення
+## Purpose
 
-Оркестрація бізнес-сценаріїв web client через один entry-point `run(...)`.
+Business scenario orchestration for web clients through a single entry point: `run(...)`.
 
-## Підтримані сценарії
+## Supported Scenarios
 
-- `login` passwordless вхід.
-- `payment-step-up` підтвердження карткового платежу passkey.
-- `sensitive-action` підтвердження чутливих дій.
-- `passwordless-recovery` відновлення доступу без пароля.
+- `login` passwordless login.
+- `payment-step-up` passkey confirmation for card payment.
+- `sensitive-action` confirmation of sensitive actions.
+- `passwordless-recovery` passwordless account recovery.
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { WebClientUseCases } from "../use-cases";
@@ -36,7 +36,7 @@ const paymentResult = await useCases.run({
 });
 ```
 
-## Примітки
+## Notes
 
-- Модуль не знає про UI, лише маршрутизує use-case до сервісів.
-- Зручно для аналітики: `scenario` можна логувати як продуктову подію.
+- The module is UI-agnostic and only routes use cases to services.
+- Convenient for analytics: `scenario` can be logged as a product event.

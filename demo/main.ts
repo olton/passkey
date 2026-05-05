@@ -83,8 +83,12 @@ getElement<HTMLButtonElement>("paymentBtn").addEventListener("click", () => {
   });
 });
 
-appendLog("Demo ready. Start mock API: npm run serve:mock-api");
+appendLog("Demo ready. Start mock API: npm run server:mock");
+appendLog("For real device WebAuthn use: npm run server:device");
 appendLog("Then run UI: npm run dev");
+appendLog("Password-to-passkey demo: http://localhost:5173/login.html");
+appendLog("Sensitive data vault demo: http://localhost:5173/sensitive.html");
+appendLog("Card payment demo: http://localhost:5173/card-pay.html");
 
 /**
  * Creates passkey client with runtime-selected WebAuthn transport.

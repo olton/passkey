@@ -1,20 +1,20 @@
 # webauthn module
 
-## Призначення
+## Purpose
 
-Низькорівневий сервіс для роботи з браузерним WebAuthn API:
+A low-level service for interacting with the browser WebAuthn API:
 
-- Створення passkey credential (registration).
-- Отримання assertion (authentication / step-up).
-- Серіалізація відповіді у JSON-safe формат для backend.
+- Passkey credential creation (registration).
+- Assertion retrieval (authentication / step-up).
+- Response serialization into JSON-safe format for backend.
 
-## Основні функції
+## Core Functions
 
-- `isSupported()` перевірка підтримки WebAuthn.
-- `createCredential(options)` запуск registration ceremony.
-- `getAssertion(options)` запуск authentication ceremony.
+- `isSupported()` checks WebAuthn support.
+- `createCredential(options)` starts registration ceremony.
+- `getAssertion(options)` starts authentication ceremony.
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { WebAuthnService } from "../webauthn";
@@ -27,8 +27,8 @@ if (webAuthn.isSupported()) {
 }
 ```
 
-## Примітки
+## Notes
 
-- `NotAllowedError` мапиться на `UserCancelledError`.
-- `PasskeyNotSupportedError` дозволяє швидко вирішити fallback-поведінку в UI.
-- Сервіс не зберігає стан і безпечний для повторного використання.
+- `NotAllowedError` is mapped to `UserCancelledError`.
+- `PasskeyNotSupportedError` helps quickly define fallback behavior in UI.
+- The service is stateless and safe to reuse.

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Passkey Sensitive Data Demo</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="background-glow"></div>
+    <main class="layout">
+      <section class="card intro-card">
+        <p class="eyebrow">Sensitive Vault</p>
+        <h1>Hide Sensitive Data And Access It Via Passkey</h1>
+        <p>
+          This demo stores a secret in encrypted form and allows it to be
+          decrypted only after successful passkey login on a real device.
+        </p>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Environment</h2>
+        <label>
+          API Base URL
+          <input id="apiUrl" type="text" value="http://localhost:4100" />
+        </label>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Identity</h2>
+        <label>
+          User ID
+          <input id="userId" type="text" value="user_sensitive_1" />
+        </label>
+        <label>
+          Username / Email
+          <input id="username" type="email" value="sensitive@example.com" autocomplete="username webauthn" />
+        </label>
+        <label>
+          Display Name
+          <input id="displayName" type="text" value="Sensitive Demo User" />
+        </label>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Secret Input</h2>
+        <label>
+          Sensitive Data
+          <textarea id="sensitiveInput" rows="6" placeholder="For example: account number, API token, access code"></textarea>
+        </label>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Revealed Secret</h2>
+        <label>
+          Decrypted Result
+          <textarea id="revealedData" rows="6" readonly placeholder="After Unlock secret, decrypted text will appear here"></textarea>
+        </label>
+      </section>
+
+      <section class="card actions-card">
+        <h2>Actions</h2>
+        <div class="actions-grid" style="grid-template-columns: 1fr;">
+          <button id="registerSensitiveBtn">1) Register Passkey</button>
+          <button id="hideSensitiveBtn" disabled>2) Hide Secret (Passkey)</button>
+          <button id="revealSensitiveBtn" disabled>3) Unlock Secret (Passkey)</button>
+          <button id="clearSensitiveBtn" disabled>4) Clear Secret (Passkey)</button>
+          <button id="clearLogsBtn">Clear Logs</button>
+        </div>
+      </section>
+
+      <section class="card controls-card">
+        <h2>Status</h2>
+        <p id="status" style="margin-bottom: 10px;">Ready</p>
+        <p style="font-size: 0.9rem;">
+          For real biometric prompts, run the device backend and make sure
+          Windows Hello is configured.
+        </p>
+      </section>
+
+      <section class="card log-card">
+        <h2>Flow Logs</h2>
+        <pre id="logs" aria-live="polite"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="./sensitive.ts"></script>
+  </body>
+</html>

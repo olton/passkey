@@ -1,30 +1,30 @@
 # @olton/passkey
 
-Passkey SDK для вебавтентифікації та сценаріїв step-up перевірки платежів.
+Passkey SDK for web authentication and payment step-up scenarios.
 
-Бібліотека допомагає реалізувати WebAuthn-потоки passkey для:
+The library helps you implement passkey-based WebAuthn flows for:
 
-- безпарольного входу
-- підтвердження чутливих дій
-- step-up перевірки платежів як альтернативи 3DS (із fallback)
-- сценарно-орієнтованої оркестрації для вебклієнтів
+- passwordless login
+- sensitive action confirmation
+- payment step-up as an alternative to 3DS (with fallback)
+- scenario-oriented orchestration for web clients
 
-## Можливості
+## Features
 
-- типізовані WebAuthn DTO для контрактів бекенда
-- браузерний транспортний сервіс WebAuthn
-- плагінний адаптер бекенда
-- високорівневі сервіси автентифікації та платежів
-- єдиний фасадний клієнт для інтеграції
-- згенеровані файли декларацій TypeScript
+- typed WebAuthn DTOs for backend contracts
+- browser WebAuthn transport service
+- pluggable backend adapter
+- high-level authentication and payment services
+- a single facade client for integration
+- generated TypeScript declaration files
 
-## Встановлення
+## Installation
 
 ```bash
 npm i @olton/passkey
 ```
 
-## Швидкий старт
+## Quick Start
 
 ```ts
 import {
@@ -51,97 +51,97 @@ const loginResult = await passkey.login({
 });
 ```
 
-## Експорти модуля
+## Module Exports
 
-Нижче наведено повний перелік експортів із `@olton/passkey`.
+Below is the full list of exports from `@olton/passkey`.
 
-### Фасад клієнта
+### Client Facade
 
-- `createPasskeyClient` - фабрика для створення `PasskeyClient`.
-- `PasskeyClient` - головний фасад SDK для реєстрації, логіну, step-up та сценаріїв.
-- `PasskeyClientConfig` - конфігурація фасаду (адаптер бекенда та опційний WebAuthn-сервіс).
+- `createPasskeyClient` - factory for creating `PasskeyClient`.
+- `PasskeyClient` - main SDK facade for registration, login, step-up, and scenario flows.
+- `PasskeyClientConfig` - facade configuration (backend adapter and optional WebAuthn service).
 
-### Адаптер бекенда
+### Backend Adapter
 
-- `PasskeyBackendAdapter` - контракт API-адаптера для registration/auth/payment потоків.
-- `PasskeyBackendEndpoints` - набір endpoint-шляхів для fetch-адаптера.
-- `FetchBackendAdapterConfig` - конфігурація fetch-адаптера (base URL, заголовки, endpoint-и).
-- `createFetchBackendAdapter` - створює адаптер для інтеграції з вашим бекендом через `fetch`.
+- `PasskeyBackendAdapter` - API adapter contract for registration/auth/payment flows.
+- `PasskeyBackendEndpoints` - endpoint path set for the fetch adapter.
+- `FetchBackendAdapterConfig` - fetch adapter configuration (base URL, headers, endpoints).
+- `createFetchBackendAdapter` - creates an adapter to integrate with your backend via `fetch`.
 
-### Сервіси автентифікації та платежів
+### Authentication and Payment Services
 
-- `PasskeyAuthService` - високорівневий сервіс для реєстрації та автентифікації.
-- `PaymentStepUpService` - оркестрація passkey step-up підтвердження карткової оплати.
-- `WebClientUseCases` - сценарно-орієнтований orchestrator для вебклієнта.
+- `PasskeyAuthService` - high-level service for registration and authentication.
+- `PaymentStepUpService` - passkey step-up orchestration for card payments.
+- `WebClientUseCases` - scenario-oriented orchestrator for web clients.
 
-### Сценарні контракти (use cases)
+### Scenario Contracts (Use Cases)
 
-- `LoginUseCaseRequest` - payload для сценарію входу.
-- `PaymentStepUpUseCaseRequest` - payload для сценарію payment step-up.
-- `SensitiveActionUseCaseRequest` - payload для сценарію підтвердження чутливої дії.
-- `PasswordlessRecoveryUseCaseRequest` - payload для сценарію passwordless recovery.
-- `WebClientUseCaseRequest` - union усіх підтриманих сценарних запитів.
-- `WebClientUseCaseResponse` - уніфікований тип відповіді сценарного orchestrator-а.
+- `LoginUseCaseRequest` - payload for login scenario.
+- `PaymentStepUpUseCaseRequest` - payload for payment step-up scenario.
+- `SensitiveActionUseCaseRequest` - payload for sensitive action confirmation scenario.
+- `PasswordlessRecoveryUseCaseRequest` - payload for passwordless recovery scenario.
+- `WebClientUseCaseRequest` - union of all supported scenario requests.
+- `WebClientUseCaseResponse` - unified response type for scenario orchestration.
 
-### WebAuthn транспорт
+### WebAuthn Transport
 
-- `WebAuthnService` - браузерний транспортний сервіс WebAuthn (створення credential + assertion).
+- `WebAuthnService` - browser WebAuthn transport service (credential creation + assertion).
 
-### Помилки SDK
+### SDK Errors
 
-- `PasskeyError` - базова помилка SDK.
-- `PasskeyNotSupportedError` - браузер/середовище не підтримує WebAuthn.
-- `UserCancelledError` - користувач скасував passkey-церемонію.
-- `BackendAdapterError` - помилки HTTP/контракту при роботі адаптера бекенда.
+- `PasskeyError` - base SDK error.
+- `PasskeyNotSupportedError` - browser/runtime does not support WebAuthn.
+- `UserCancelledError` - user cancelled passkey ceremony.
+- `BackendAdapterError` - HTTP/contract errors from backend adapter interaction.
 
-### Утиліти base64url
+### Base64url Utilities
 
-- `base64UrlToArrayBuffer` - перетворює base64url у `ArrayBuffer`.
-- `arrayBufferToBase64Url` - перетворює `ArrayBuffer` у base64url.
-- `uint8ArrayToBase64Url` - перетворює `Uint8Array` у base64url.
-- `base64UrlToUint8Array` - перетворює base64url у `Uint8Array`.
+- `base64UrlToArrayBuffer` - converts base64url to `ArrayBuffer`.
+- `arrayBufferToBase64Url` - converts `ArrayBuffer` to base64url.
+- `uint8ArrayToBase64Url` - converts `Uint8Array` to base64url.
+- `base64UrlToUint8Array` - converts base64url to `Uint8Array`.
 
-### Базові типи домену та рішення
+### Core Domain Types and Decisions
 
-- `Base64Url` - рядок у форматі base64url.
-- `StepUpDecision` - рішення step-up перевірки: approve/fallback/reject.
-- `WebClientScenario` - перелік бізнес-сценаріїв вебклієнта.
+- `Base64Url` - string in base64url format.
+- `StepUpDecision` - step-up decision: approve/fallback/reject.
+- `WebClientScenario` - supported web client business scenarios.
 
-### Профіль користувача, ризик-сигнали, платіжний контекст
+### User Profile, Risk Signals, and Payment Context
 
-- `PasskeyUser` - дані користувача для реєстрації passkey.
-- `RiskSignals` - опційні сигнали ризику для fraud/risk-аналізу.
-- `CardPaymentContext` - бізнес-контекст карткового платежу.
+- `PasskeyUser` - user data for passkey registration.
+- `RiskSignals` - optional signals for fraud/risk analysis.
+- `CardPaymentContext` - business context for card payments.
 
-### WebAuthn JSON DTO
+### WebAuthn JSON DTOs
 
-- `PublicKeyCredentialDescriptorJSON` - JSON-представлення credential descriptor.
-- `PublicKeyCredentialUserEntityJSON` - JSON-представлення користувача WebAuthn.
-- `PublicKeyCredentialCreationOptionsJSON` - JSON-опції створення credential (registration).
-- `PublicKeyCredentialRequestOptionsJSON` - JSON-опції assertion (authentication/payment).
-- `CredentialAttestationJSON` - серіалізований результат реєстрації passkey.
-- `CredentialAssertionJSON` - серіалізований результат автентифікації passkey.
+- `PublicKeyCredentialDescriptorJSON` - JSON representation of credential descriptor.
+- `PublicKeyCredentialUserEntityJSON` - JSON representation of WebAuthn user entity.
+- `PublicKeyCredentialCreationOptionsJSON` - JSON credential creation options (registration).
+- `PublicKeyCredentialRequestOptionsJSON` - JSON assertion options (authentication/payment).
+- `CredentialAttestationJSON` - serialized passkey registration result.
+- `CredentialAssertionJSON` - serialized passkey authentication result.
 
-### Запити до бекенда
+### Backend Request Types
 
-- `BeginRegistrationInput` - payload запиту на отримання registration options.
-- `FinishRegistrationInput` - payload запиту на верифікацію реєстрації.
-- `BeginAuthenticationInput` - payload запиту на отримання authentication options.
-- `FinishAuthenticationInput` - payload запиту на верифікацію автентифікації.
-- `BeginPaymentStepUpInput` - payload запиту на отримання payment step-up options.
-- `FinishPaymentStepUpInput` - payload запиту на верифікацію payment step-up.
+- `BeginRegistrationInput` - payload to request registration options.
+- `FinishRegistrationInput` - payload to verify registration.
+- `BeginAuthenticationInput` - payload to request authentication options.
+- `FinishAuthenticationInput` - payload to verify authentication.
+- `BeginPaymentStepUpInput` - payload to request payment step-up options.
+- `FinishPaymentStepUpInput` - payload to verify payment step-up.
 
-### Результати верифікації та сесія
+### Verification Results and Session
 
-- `AuthSession` - сесійні дані після успішної автентифікації.
-- `RegistrationVerificationResult` - результат верифікації реєстрації.
-- `AuthenticationVerificationResult` - результат верифікації автентифікації.
-- `PaymentStepUpVerificationResult` - результат верифікації payment step-up на бекенді.
-- `PaymentStepUpResult` - фінальний результат step-up для клієнта (включно з флагами fallback/3DS).
+- `AuthSession` - session data after successful authentication.
+- `RegistrationVerificationResult` - registration verification result.
+- `AuthenticationVerificationResult` - authentication verification result.
+- `PaymentStepUpVerificationResult` - backend payment step-up verification result.
+- `PaymentStepUpResult` - final client step-up result (including fallback/3DS flags).
 
-## Приклади використання
+## Usage Examples
 
-### 1) Безпарольний вхід
+### 1) Passwordless Login
 
 ```ts
 const loginResult = await passkey.login({
@@ -152,11 +152,11 @@ const loginResult = await passkey.login({
 });
 
 if (loginResult.verified) {
-	console.log("Вхід виконано");
+	console.log("Login successful");
 }
 ```
 
-### 2) Підтвердження чутливої дії
+### 2) Sensitive Action Confirmation
 
 ```ts
 const confirmResult = await passkey.confirmSensitiveAction({
@@ -167,7 +167,7 @@ const confirmResult = await passkey.confirmSensitiveAction({
 });
 ```
 
-### 3) Step-Up перевірка оплати карткою
+### 3) Card Payment Step-Up
 
 ```ts
 const paymentResult = await passkey.confirmCardPayment({
@@ -181,11 +181,11 @@ const paymentResult = await passkey.confirmCardPayment({
 });
 
 if (paymentResult.shouldTrigger3DS) {
-	// fallback на класичний 3DS-челендж
+	// fallback to a classic 3DS challenge
 }
 ```
 
-### 4) Сценарно-орієнтований потік
+### 4) Scenario-Oriented Flow
 
 ```ts
 const result = await passkey.runUseCase({
@@ -202,43 +202,66 @@ const result = await passkey.runUseCase({
 });
 ```
 
-## Запуск демо локально
+## Run Demo Locally
 
-### 1) Запустіть mock-бекенд
+### 1) Start One of the Demo Backends
+
+#### Option A: Mock Backend (Quick Local Checks)
 
 ```bash
-npm run server
+npm run server:mock
 ```
 
-URL за замовчуванням: `http://localhost:4000`
+Default URL: `http://localhost:4000`
 
-### 2) Запустіть демо-інтерфейс
+#### Option B: Dedicated WebAuthn Backend (Windows Hello)
+
+```bash
+npm run server:device
+```
+
+Default URL: `http://localhost:4100`
+
+This server returns WebAuthn policies for platform authenticators (`authenticatorAttachment: "platform"`) and `userVerification: "required"`.
+
+### 2) Start Demo UI
 
 ```bash
 npm run dev
 ```
 
-Відкрийте: `http://localhost:5173`
+Open: `http://localhost:5173`
 
-### 3) Спробуйте сценарії в демо
+Dedicated login/password -> passkey onboarding demo: `http://localhost:5173/login.html`
 
-- Зареєструйте passkey
-- Виконайте вхід за допомогою passkey
-- Підтвердьте чутливу дію
-- Підтвердьте оплату карткою
+Dedicated sensitive data vault demo with passkey access: `http://localhost:5173/sensitive.html`
 
-Порада: залишайте `Use mock WebAuthn transport` увімкненим для передбачуваної локальної поведінки.
+### 3) Try Demo Scenarios
 
-## Результати збірки
+- Register passkey
+- Login with passkey
+- Confirm a sensitive action
+- Confirm a card payment
+
+Tip: keep `Use mock WebAuthn transport` enabled for predictable local behavior.
+
+For real Windows Hello, disable `Use mock WebAuthn transport` and set `API Base URL` to `http://localhost:4100`.
+
+Dedicated setup runbook for Windows Hello: `docs/windows-hello-webauthn-demo.md`.
+
+## Build Outputs
 
 - ESM bundle: `dist/prod/passkey.es.js`
 - CJS bundle: `dist/prod/passkey.cjs.js`
 - Type declarations: `dist/types/index.d.ts`
 
-## Скрипти
+## Scripts
 
-- `npm run dev` - запустити демо-інтерфейс
-- `npm run server` - запустити mock-бекенд
-- `npm run test` - запустити тестовий набір
-- `npm run build:prod` - зібрати production-бандли та декларації
-- `npm run build` - lint + typecheck + test + production збірка
+- `npm run dev` - start demo UI
+- `npm run server:mock` - start mock backend
+- `npm run server:device` - start dedicated WebAuthn backend for Windows Hello
+- `npm run start:mock` - start mock backend and demo UI together
+- `npm run start:device` - start WebAuthn backend and demo UI together
+- `npm run test` - run test suite
+- `npm run build:prod` - build production bundles and declarations
+- `npm run build` - lint + typecheck + test + production build

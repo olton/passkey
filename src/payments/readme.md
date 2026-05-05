@@ -1,18 +1,18 @@
 # payments module
 
-## Призначення
+## Purpose
 
-Модуль для passkey step-up під час оплати карткою як альтернативи 3DS у відповідних бізнес-кейсах.
+Module for passkey step-up during card payments as an alternative to 3DS in relevant business cases.
 
-## Що реалізовано
+## What Is Implemented
 
-- `confirmCardPayment` повний flow:
-  1. Запросити challenge для платежу.
-  2. Виконати passkey assertion.
-  3. Передати assertion на backend-верифікацію.
-  4. Отримати рішення: `approved`, `fallback_to_3ds`, `rejected`.
+- `confirmCardPayment` full flow:
+  1. Request payment challenge.
+  2. Perform passkey assertion.
+  3. Send assertion to backend for verification.
+  4. Receive decision: `approved`, `fallback_to_3ds`, `rejected`.
 
-## Приклад використання
+## Usage Example
 
 ```ts
 import { PaymentStepUpService } from "../payments";
@@ -34,7 +34,7 @@ if (result.shouldTrigger3DS) {
 }
 ```
 
-## Примітки
+## Notes
 
-- Якщо браузер не підтримує passkey, модуль автоматично повертає fallback на 3DS.
-- Рішення про використання passkey як заміни 3DS повинно відповідати вимогам PSP/acquirer і локальної регуляції.
+- If browser does not support passkeys, the module automatically returns fallback to 3DS.
+- The decision to use passkeys as a 3DS alternative must comply with PSP/acquirer requirements and local regulations.
