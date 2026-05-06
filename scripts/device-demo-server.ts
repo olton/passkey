@@ -30,15 +30,24 @@ interface SensitiveVaultRecord {
 }
 
 const ROUTES = {
-  registrationOptions: ["/passkeys/registration/options", "Provides registration options for platform passkeys (For example: Windows Hello)."],
-  registrationVerify: ["/passkeys/registration/verify", "Verifies registration response payload."],
-  authenticationOptions: ["/passkeys/authentication/options", "Provides login challenge requiring local user verification."],
-  authenticationVerify: ["/passkeys/authentication/verify", "Verifies authentication assertion payload."],
-  paymentOptions: ["/passkeys/payments/options", "Provides payment challenge with required user verification."],
-  paymentVerify: ["/passkeys/payments/verify", "Verifies payment step-up assertion payload."],
-  sensitiveStore: ["/demo/sensitive/store", "Stores encrypted sensitive payload for a user after passkey auth."],
-  sensitiveReveal: ["/demo/sensitive/reveal", "Returns encrypted sensitive payload after passkey auth."],
-  sensitiveClear: ["/demo/sensitive/clear", "Clears stored sensitive payload after passkey auth."],
+  registrationOptions: "/passkeys/registration/options",
+  registrationVerify: "/passkeys/registration/verify",
+  authenticationOptions: "/passkeys/authentication/options",
+  authenticationVerify: "/passkeys/authentication/verify",
+  paymentOptions: "/passkeys/payments/options",
+  paymentVerify: "/passkeys/payments/verify",
+  sensitiveStore: "/demo/sensitive/store",
+  sensitiveReveal: "/demo/sensitive/reveal",
+  sensitiveClear: "/demo/sensitive/clear",
+} as const;
+
+const ROUTES_DESCRIPTIONS = {
+  "/passkeys/registration/options": "Provides registration options for platform passkeys (For example: Windows Hello).",
+  "/passkeys/registration/verify": "Verifies registration response payload.",
+  "/passkeys/authentication/options": "Provides login challenge requiring local user verification.",
+  "/passkeys/authentication/verify": "Verifies authentication assertion payload.",
+  "/passkeys/payments/options": "Provides payment challenge with required user verification.",
+  "/passkeys/payments/verify": "Verifies payment step-up assertion payload.",
 } as const;
 
 const challengeStore = new Map<string, ChallengeRecord>();
@@ -87,7 +96,7 @@ server.listen(PORT, () => {
   console.log(`[device-demo] Challenge TTL: ${CHALLENGE_TTL_MS}ms`);
   console.log("[device-demo] Endpoints:");
 
-  for (const [, [path, description]] of Object.entries(ROUTES)) {
+  for (const [path, description] of Object.entries(ROUTES_DESCRIPTIONS)) {
     console.log(`  ${termx.bold.cyanBright.write(path)} - ${termx.gray.write(description)}`);
   }
 
@@ -149,47 +158,47 @@ function handleRoute(
   body: Record<string, unknown> | null,
   response: ServerResponse,
 ): boolean {
-  if (path === ROUTES.registrationOptions[0]) {
+  if (path === ROUTES.registrationOptions) {
     handleRegistrationOptions(body, response);
     return true;
   }
 
-  if (path === ROUTES.registrationVerify[0]) {
+  if (path === ROUTES.registrationVerify) {
     handleRegistrationVerify(body, response);
     return true;
   }
 
-  if (path === ROUTES.authenticationOptions[0]) {
+  if (path === ROUTES.authenticationOptions) {
     handleAuthenticationOptions(body, response);
     return true;
   }
 
-  if (path === ROUTES.authenticationVerify[0]) {
+  if (path === ROUTES.authenticationVerify) {
     handleAuthenticationVerify(body, response);
     return true;
   }
 
-  if (path === ROUTES.paymentOptions[0]) {
+  if (path === ROUTES.paymentOptions) {
     handlePaymentOptions(response);
     return true;
   }
 
-  if (path === ROUTES.paymentVerify[0]) {
+  if (path === ROUTES.paymentVerify) {
     handlePaymentVerify(body, response);
     return true;
   }
 
-  if (path === ROUTES.sensitiveStore[0]) {
+  if (path === ROUTES.sensitiveStore) {
     handleSensitiveStore(body, response);
     return true;
   }
 
-  if (path === ROUTES.sensitiveReveal[0]) {
+  if (path === ROUTES.sensitiveReveal) {
     handleSensitiveReveal(body, response);
     return true;
   }
 
-  if (path === ROUTES.sensitiveClear[0]) {
+  if (path === ROUTES.sensitiveClear) {
     handleSensitiveClear(body, response);
     return true;
   }
