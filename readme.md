@@ -229,6 +229,14 @@ Module docs: [src/utils/readme.md](src/utils/readme.md)
 - `uint8ArrayToBase64Url` - converts `Uint8Array` to base64url.
 - `base64UrlToUint8Array` - converts base64url to `Uint8Array`.
 
+### Generic Crypto Utilities
+
+Module docs: [src/crypto/readme.md](src/crypto/readme.md)
+
+- `encrypt` - generic AES-GCM encrypt for JSON-serializable payloads.
+- `decrypt` - generic AES-GCM decrypt for serialized payload bundles.
+- `EncryptedPayloadBundle` - serialized encrypted payload bundle shape.
+
 ### Core Domain Types and Decisions
 
 Module docs: [src/types/readme.md](src/types/readme.md)

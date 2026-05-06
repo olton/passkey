@@ -4,7 +4,7 @@ import {
   createFetchBackendAdapter,
   createPasskeyClient,
   uint8ArrayToBase64Url,
-} from "../src/index";
+} from "../../src/index";
 
 type SensitiveVaultPayload = {
   encryptedData: string;

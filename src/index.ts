@@ -5,5 +5,6 @@ export * from "./adapters";
 export * from "./webauthn";
 export * from "./auth";
 export * from "./payments";
+export * from "./crypto";
 export * from "./use-cases";
 export * from "./core";

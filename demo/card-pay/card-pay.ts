@@ -1,29 +1,17 @@
 import {
-  arrayBufferToBase64Url,
-  base64UrlToArrayBuffer,
   createFetchBackendAdapter,
   createPasskeyClient,
-  uint8ArrayToBase64Url,
-} from "../src/index";
+  decrypt,
+  encrypt,
+  type CardFormProps,
+} from "../../src/index";
 
 type CardBrand = "Visa" | "Mastercard";
 
-type CardPayload = {
-  number: string;
-  expiry: string;
-  cvv: string;
-  cardholder: string;
-};
-
-type ParsedCardPayload = CardPayload & {
+type ParsedCardForm = CardFormProps & {
   brand: CardBrand;
   last4: string;
-};
-
-type EncryptedCardBundle = {
-  ciphertext: string;
-  iv: string;
-  keyMaterial: string;
+  expiry: string;
 };
 
 type StoredCardObject = {
@@ -73,7 +61,7 @@ window.addEventListener("keydown", (event) => {
 
 threeDsBtn.addEventListener("click", () => {
   void runAction("3ds-mock", async () => {
-    const card = readCardPayload();
+    const card = readCardForm();
     const approved = await runThreeDsMock(card);
     if (!approved) {
       throw new Error("3DS mock declined.");
@@ -93,7 +81,7 @@ threeDsBtn.addEventListener("click", () => {
 
 saveCardBtn.addEventListener("click", () => {
   void runAction("save-card-with-passkey", async () => {
-    const card = readCardPayload();
+    const card = readCardForm();
     ensure3DsForCurrentCard(card);
 
     await ensurePasskeyAuthenticated("save-card");
@@ -121,10 +109,10 @@ payBtn.addEventListener("click", () => {
 
     await ensurePasskeyAuthenticated("pay");
 
-    const decryptedCard = await decryptCardObject(tokenObject.encryptedCard);
+    const decryptedCard = await decrypt<CardFormProps>(tokenObject.encryptedCard);
     const amountMinor = Number(getValue("amountMinor"));
     const isSuccessful = Number.isFinite(amountMinor) && amountMinor > 0
-      && decryptedCard.number.endsWith(tokenObject.last4);
+      && decryptedCard.cardNumber.endsWith(tokenObject.last4);
 
     if (!isSuccessful) {
       showPaymentResult(false, "Payment could not be completed.");
@@ -258,7 +246,7 @@ async function ensurePasskeyAuthenticated(reason: string): Promise<void> {
 /**
  * Runs a 3DS mock challenge in modal dialog.
  */
-async function runThreeDsMock(card: ParsedCardPayload): Promise<boolean> {
+async function runThreeDsMock(card: ParsedCardForm): Promise<boolean> {
   const amountMinor = Number(getValue("amountMinor"));
   const currency = getValue("currency").toUpperCase();
 
@@ -282,8 +270,14 @@ async function runThreeDsMock(card: ParsedCardPayload): Promise<boolean> {
 /**
  * Builds stored object with required fields.
  */
-async function buildStoredCardObject(card: ParsedCardPayload): Promise<StoredCardObject> {
-  const encryptedCard = await encryptCardObject(card);
+async function buildStoredCardObject(card: ParsedCardForm): Promise<StoredCardObject> {
+  const encryptedCard = await encrypt<CardFormProps>({
+    cardNumber: card.cardNumber,
+    expirationMonth: card.expirationMonth,
+    expirationYear: card.expirationYear,
+    cvc: card.cvc,
+    ...(card.cardHolderName ? { cardHolderName: card.cardHolderName } : {}),
+  });
 
   return {
     encryptedCard,
@@ -294,61 +288,9 @@ async function buildStoredCardObject(card: ParsedCardPayload): Promise<StoredCar
 }
 
 /**
- * Encrypts card payload and returns serialized encrypted bundle.
- */
-async function encryptCardObject(card: ParsedCardPayload): Promise<string> {
-  ensureCryptoSupport();
-
-  const key = await crypto.subtle.generateKey(
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"],
-  );
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const plainBytes = new TextEncoder().encode(JSON.stringify(card));
-  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plainBytes);
-  const rawKey = await crypto.subtle.exportKey("raw", key);
-
-  const bundle: EncryptedCardBundle = {
-    ciphertext: arrayBufferToBase64Url(encrypted),
-    iv: uint8ArrayToBase64Url(iv),
-    keyMaterial: arrayBufferToBase64Url(rawKey),
-  };
-
-  return uint8ArrayToBase64Url(new TextEncoder().encode(JSON.stringify(bundle)));
-}
-
-/**
- * Decrypts saved encrypted card object.
- */
-async function decryptCardObject(serialized: string): Promise<CardPayload> {
-  ensureCryptoSupport();
-
-  const decoded = new TextDecoder().decode(base64UrlToArrayBuffer(serialized));
-  const bundle = JSON.parse(decoded) as EncryptedCardBundle;
-
-  const iv = new Uint8Array(base64UrlToArrayBuffer(bundle.iv));
-  const key = await crypto.subtle.importKey(
-    "raw",
-    base64UrlToArrayBuffer(bundle.keyMaterial),
-    { name: "AES-GCM" },
-    false,
-    ["decrypt"],
-  );
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    base64UrlToArrayBuffer(bundle.ciphertext),
-  );
-
-  return JSON.parse(new TextDecoder().decode(new Uint8Array(decrypted))) as CardPayload;
-}
-
-/**
  * Ensures 3DS was completed for the current card snapshot.
  */
-function ensure3DsForCurrentCard(card: ParsedCardPayload): void {
+function ensure3DsForCurrentCard(card: ParsedCardForm): void {
   if (!is3DsCompleted || !threeDsFingerprint) {
     throw new Error("Complete 3DS mock before saving card token.");
   }
@@ -361,8 +303,8 @@ function ensure3DsForCurrentCard(card: ParsedCardPayload): void {
 /**
  * Creates deterministic fingerprint for 3DS card snapshot.
  */
-function buildThreeDsFingerprint(card: ParsedCardPayload): string {
-  return `${card.number}|${card.expiry}|${card.cardholder}|${getValue("amountMinor")}|${getValue("currency").toUpperCase()}`;
+function buildThreeDsFingerprint(card: ParsedCardForm): string {
+  return `${card.cardNumber}|${card.expirationMonth}|${card.expirationYear}|${card.cardHolderName ?? ""}|${getValue("amountMinor")}|${getValue("currency").toUpperCase()}`;
 }
 
 /**
@@ -370,7 +312,7 @@ function buildThreeDsFingerprint(card: ParsedCardPayload): string {
  */
 function matchesThreeDsFingerprintSafe(): boolean {
   try {
-    return Boolean(threeDsFingerprint) && buildThreeDsFingerprint(readCardPayload()) === threeDsFingerprint;
+    return Boolean(threeDsFingerprint) && buildThreeDsFingerprint(readCardForm()) === threeDsFingerprint;
   } catch {
     return false;
   }
@@ -379,7 +321,7 @@ function matchesThreeDsFingerprintSafe(): boolean {
 /**
  * Reads and validates card fields from UI.
  */
-function readCardPayload(): ParsedCardPayload {
+function readCardForm(): ParsedCardForm {
   const number = normalizeCardNumber(getValue("cardNumber"));
   const expiry = getValue("cardExpiry").trim();
   const cvv = getValue("cardCvv").trim();
@@ -391,6 +333,16 @@ function readCardPayload(): ParsedCardPayload {
 
   if (!/^\d{2}\/\d{2}$/.test(expiry)) {
     throw new Error("Expiry must be in MM/YY format.");
+  }
+
+  const [expirationMonth, expirationYearShort] = expiry.split("/");
+  if (!expirationMonth || !expirationYearShort) {
+    throw new Error("Expiry must be in MM/YY format.");
+  }
+
+  const month = Number(expirationMonth);
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    throw new Error("Expiry month is invalid.");
   }
 
   if (!/^\d{3,4}$/.test(cvv)) {
@@ -407,10 +359,12 @@ function readCardPayload(): ParsedCardPayload {
   }
 
   return {
-    number,
+    cardNumber: number,
+    expirationMonth,
+    expirationYear: `20${expirationYearShort}`,
+    cvc: cvv,
+    cardHolderName: cardholder,
     expiry,
-    cvv,
-    cardholder,
     brand,
     last4: number.slice(-4),
   };
@@ -571,19 +525,10 @@ function syncButtons(): void {
  */
 function isCardInputValid(): boolean {
   try {
-    readCardPayload();
+    readCardForm();
     return true;
   } catch {
     return false;
-  }
-}
-
-/**
- * Ensures Web Crypto API support.
- */
-function ensureCryptoSupport(): void {
-  if (!globalThis.crypto?.subtle) {
-    throw new Error("Web Crypto API is not available in this browser.");
   }
 }
 

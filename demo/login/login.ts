@@ -1,7 +1,7 @@
 import {
   createFetchBackendAdapter,
   createPasskeyClient,
-} from "../src/index";
+} from "../../src/index";
 
 const logs = getElement<HTMLPreElement>("logs");
 const status = getElement<HTMLParagraphElement>("status");
