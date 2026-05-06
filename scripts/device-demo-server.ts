@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { randomUUID } from "node:crypto";
 import process from "node:process";
 import { termx } from "@olton/terminal";
+import { DEFAULT_PASSKEY_BACKEND_ENDPOINTS } from "../src";
 
 const PORT = Number(process.env["PASSKEY_WEBAUTHN_PORT"] ?? 4100);
 const RP_ID = process.env["PASSKEY_WEBAUTHN_RP_ID"] ?? "localhost";
@@ -30,12 +31,13 @@ interface SensitiveVaultRecord {
 }
 
 const ROUTES = {
-  registrationOptions: "/passkeys/registration/options",
-  registrationVerify: "/passkeys/registration/verify",
-  authenticationOptions: "/passkeys/authentication/options",
-  authenticationVerify: "/passkeys/authentication/verify",
-  paymentOptions: "/passkeys/payments/options",
-  paymentVerify: "/passkeys/payments/verify",
+  ...DEFAULT_PASSKEY_BACKEND_ENDPOINTS,
+  // registrationOptions: "/passkeys/registration/options",
+  // registrationVerify: "/passkeys/registration/verify",
+  // authenticationOptions: "/passkeys/authentication/options",
+  // authenticationVerify: "/passkeys/authentication/verify",
+  // paymentOptions: "/passkeys/payments/options",
+  // paymentVerify: "/passkeys/payments/verify",
   sensitiveStore: "/demo/sensitive/store",
   sensitiveReveal: "/demo/sensitive/reveal",
   sensitiveClear: "/demo/sensitive/clear",
@@ -158,32 +160,32 @@ function handleRoute(
   body: Record<string, unknown> | null,
   response: ServerResponse,
 ): boolean {
-  if (path === ROUTES.registrationOptions) {
+  if (path === ROUTES.beginRegistration) {
     handleRegistrationOptions(body, response);
     return true;
   }
 
-  if (path === ROUTES.registrationVerify) {
+  if (path === ROUTES.finishRegistration) {
     handleRegistrationVerify(body, response);
     return true;
   }
 
-  if (path === ROUTES.authenticationOptions) {
+  if (path === ROUTES.beginAuthentication) {
     handleAuthenticationOptions(body, response);
     return true;
   }
 
-  if (path === ROUTES.authenticationVerify) {
+  if (path === ROUTES.finishAuthentication) {
     handleAuthenticationVerify(body, response);
     return true;
   }
 
-  if (path === ROUTES.paymentOptions) {
+  if (path === ROUTES.beginPaymentStepUp) {
     handlePaymentOptions(response);
     return true;
   }
 
-  if (path === ROUTES.paymentVerify) {
+  if (path === ROUTES.finishPaymentStepUp) {
     handlePaymentVerify(body, response);
     return true;
   }
