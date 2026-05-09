@@ -8,6 +8,10 @@ export default {
     'errors.base64.decoderUnavailable': 'У цьому середовищі немає доступного base64-декодера.',
     'errors.base64.encoderUnavailable': 'У цьому середовищі немає доступного base64-енкодера.',
     'errors.useCases.unsupportedScenario': 'Непідтримуваний payload сценарію',
+    'errors.useCases.cardTokenUnavailable': 'Use-case card/token checkout не налаштований.',
     'payments.stepUp.passkeyNotSupported': 'Браузер не підтримує passkeys, потрібен fallback на 3DS.',
     'payments.stepUp.enrollmentRequired': 'Для цього акаунта не знайдено зареєстрований платіжний passkey. Дотримуйтесь політики backend/product щодо верифікації, enrollment або fallback.',
+    'payments.cardToken.passkeyNotSupported': 'Браузер не підтримує passkeys для card/token checkout flow.',
+    'payments.cardToken.cancelled': 'Користувач скасував card/token passkey-процедуру.',
+    'payments.cardToken.adapterUnsupported': 'Адаптер не реалізує ізольований card/token passkey контракт.',
 } as const;

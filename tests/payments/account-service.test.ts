@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { PaymentStepUpService } from "../../src/payments";
+import { AccountService } from "../../src/payments";
 import type { PasskeyBackendAdapter } from "../../src/adapters";
 import { BackendAdapterError } from "../../src/errors";
 import type {
@@ -42,7 +42,7 @@ describe("payment step-up service", () => {
       getAssertion: vi.fn(),
     };
 
-    const service = new PaymentStepUpService(
+    const service = new AccountService(
       adapter,
       webAuthn as unknown as never,
     );
@@ -79,7 +79,7 @@ describe("payment step-up service", () => {
       getAssertion: vi.fn().mockResolvedValue(assertion),
     };
 
-    const service = new PaymentStepUpService(
+    const service = new AccountService(
       adapter,
       webAuthn as unknown as never,
     );
@@ -128,7 +128,7 @@ describe("payment step-up service", () => {
       getAssertion: vi.fn().mockResolvedValue(assertion),
     };
 
-    const service = new PaymentStepUpService(
+    const service = new AccountService(
       adapter,
       webAuthn as unknown as never,
     );

@@ -8,6 +8,10 @@ export default {
     'errors.base64.decoderUnavailable': 'No base64 decoder is available in this runtime.',
     'errors.base64.encoderUnavailable': 'No base64 encoder is available in this runtime.',
     'errors.useCases.unsupportedScenario': 'Unsupported scenario payload',
+    'errors.useCases.cardTokenUnavailable': 'Card/token checkout use-case is not configured.',
     'payments.stepUp.passkeyNotSupported': 'Browser does not support passkeys, fallback to 3DS is required.',
     'payments.stepUp.enrollmentRequired': 'No enrolled payment passkey found for this account. Follow backend/product policy for verification, enrollment, or fallback.',
+    'payments.cardToken.passkeyNotSupported': 'Browser does not support passkeys for card/token checkout flow.',
+    'payments.cardToken.cancelled': 'User cancelled card/token passkey ceremony.',
+    'payments.cardToken.adapterUnsupported': 'Adapter does not implement isolated card/token passkey contract.',
 } as const;

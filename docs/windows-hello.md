@@ -34,7 +34,7 @@ npm run dev
 
 - Login/password onboarding demo page: `http://localhost:5173/login/index.html`.
 - Sensitive vault demo page: `http://localhost:5173/sensitive/index.html`.
-- Card payment demo page: `http://localhost:5173/card-pay/index.html`.
+- Card service demo page: `http://localhost:5173/card-service/index.html`.
 
 ## 4. Browser and environment requirements
 

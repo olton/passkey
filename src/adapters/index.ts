@@ -1,9 +1,17 @@
 import { BackendAdapterError } from '../errors';
 import type {
+    AuthorizeCardTokenPaymentInput,
+    AuthorizeCardTokenPaymentResult,
     AuthenticationVerificationResult,
+    BeginCardTokenEnrollmentInput,
+    BeginCardTokenStepUpInput,
     BeginAuthenticationInput,
     BeginPaymentStepUpInput,
     BeginRegistrationInput,
+    CardTokenEnrollmentResult,
+    CardTokenStepUpVerificationResult,
+    FinishCardTokenEnrollmentInput,
+    FinishCardTokenStepUpInput,
     FinishAuthenticationInput,
     FinishPaymentStepUpInput,
     FinishRegistrationInput,
@@ -49,6 +57,36 @@ export interface PasskeyBackendAdapter {
 }
 
 /**
+ * Optional backend API contract for isolated card/token passkey checkout flow.
+ */
+export interface CardTokenPasskeyBackendAdapter {
+    /**
+     * Requests WebAuthn assertion options for card/token checkout step-up.
+     */
+    beginCardTokenStepUp(input: BeginCardTokenStepUpInput): Promise<PublicKeyCredentialRequestOptionsJSON>;
+
+    /**
+     * Verifies card/token passkey assertion for checkout step-up.
+     */
+    finishCardTokenStepUp(input: FinishCardTokenStepUpInput): Promise<CardTokenStepUpVerificationResult>;
+
+    /**
+     * Runs final payment authorization in gateway/PSP rails.
+     */
+    authorizeCardTokenPayment(input: AuthorizeCardTokenPaymentInput): Promise<AuthorizeCardTokenPaymentResult>;
+
+    /**
+     * Requests passkey enrollment options for card/token post-payment binding.
+     */
+    beginCardTokenEnrollment(input: BeginCardTokenEnrollmentInput): Promise<PublicKeyCredentialCreationOptionsJSON>;
+
+    /**
+     * Verifies passkey enrollment for card/token post-payment binding.
+     */
+    finishCardTokenEnrollment(input: FinishCardTokenEnrollmentInput): Promise<CardTokenEnrollmentResult>;
+}
+
+/**
  * Endpoint set used by fetch backend adapter.
  */
 export interface PasskeyBackendEndpoints {
@@ -61,11 +99,23 @@ export interface PasskeyBackendEndpoints {
 }
 
 /**
+ * Endpoint set used by fetch backend adapter for isolated card/token flow.
+ */
+export interface CardTokenPasskeyBackendEndpoints {
+    beginCardTokenStepUp: string;
+    finishCardTokenStepUp: string;
+    authorizeCardTokenPayment: string;
+    beginCardTokenEnrollment: string;
+    finishCardTokenEnrollment: string;
+}
+
+/**
  * Configuration for a fetch-driven backend adapter.
  */
 export interface FetchBackendAdapterConfig {
     baseUrl: string;
     endpoints?: Partial<PasskeyBackendEndpoints>;
+    cardTokenEndpoints?: Partial<CardTokenPasskeyBackendEndpoints>;
     defaultHeaders?: HeadersInit;
     fetchImpl?: typeof fetch;
 }
@@ -85,12 +135,28 @@ export const DEFAULT_PASSKEY_BACKEND_ENDPOINTS: Readonly<PasskeyBackendEndpoints
 };
 
 /**
+ * Default endpoint paths for isolated card/token passkey flow.
+ */
+export const DEFAULT_CARD_TOKEN_PASSKEY_BACKEND_ENDPOINTS: Readonly<CardTokenPasskeyBackendEndpoints> = {
+    beginCardTokenStepUp: '/passkeys/card-payments/options',
+    finishCardTokenStepUp: '/passkeys/card-payments/verify',
+    authorizeCardTokenPayment: '/passkeys/card-payments/authorize',
+    beginCardTokenEnrollment: '/passkeys/card-payments/passkey/enroll/options',
+    finishCardTokenEnrollment: '/passkeys/card-payments/passkey/enroll/verify',
+};
+
+/**
  * Creates a backend adapter that communicates with your API over `fetch`.
  */
-export function createFetchBackendAdapter(config: FetchBackendAdapterConfig): PasskeyBackendAdapter {
+export function createFetchBackendAdapter(config: FetchBackendAdapterConfig): PasskeyBackendAdapter & CardTokenPasskeyBackendAdapter {
     const endpoints: PasskeyBackendEndpoints = {
         ...DEFAULT_PASSKEY_BACKEND_ENDPOINTS,
         ...config.endpoints,
+    };
+
+    const cardTokenEndpoints: CardTokenPasskeyBackendEndpoints = {
+        ...DEFAULT_CARD_TOKEN_PASSKEY_BACKEND_ENDPOINTS,
+        ...config.cardTokenEndpoints,
     };
 
     const normalizedBaseUrl = config.baseUrl.replace(/\/+$/, '');
@@ -102,6 +168,11 @@ export function createFetchBackendAdapter(config: FetchBackendAdapterConfig): Pa
         finishAuthentication: (input) => postJson<FinishAuthenticationInput, AuthenticationVerificationResult>(normalizedBaseUrl, endpoints.finishAuthentication, input, config),
         beginPaymentStepUp: (input) => postJson<BeginPaymentStepUpInput, PublicKeyCredentialRequestOptionsJSON>(normalizedBaseUrl, endpoints.beginPaymentStepUp, input, config),
         finishPaymentStepUp: (input) => postJson<FinishPaymentStepUpInput, PaymentStepUpVerificationResult>(normalizedBaseUrl, endpoints.finishPaymentStepUp, input, config),
+        beginCardTokenStepUp: (input) => postJson<BeginCardTokenStepUpInput, PublicKeyCredentialRequestOptionsJSON>(normalizedBaseUrl, cardTokenEndpoints.beginCardTokenStepUp, input, config),
+        finishCardTokenStepUp: (input) => postJson<FinishCardTokenStepUpInput, CardTokenStepUpVerificationResult>(normalizedBaseUrl, cardTokenEndpoints.finishCardTokenStepUp, input, config),
+        authorizeCardTokenPayment: (input) => postJson<AuthorizeCardTokenPaymentInput, AuthorizeCardTokenPaymentResult>(normalizedBaseUrl, cardTokenEndpoints.authorizeCardTokenPayment, input, config),
+        beginCardTokenEnrollment: (input) => postJson<BeginCardTokenEnrollmentInput, PublicKeyCredentialCreationOptionsJSON>(normalizedBaseUrl, cardTokenEndpoints.beginCardTokenEnrollment, input, config),
+        finishCardTokenEnrollment: (input) => postJson<FinishCardTokenEnrollmentInput, CardTokenEnrollmentResult>(normalizedBaseUrl, cardTokenEndpoints.finishCardTokenEnrollment, input, config),
     };
 }
 

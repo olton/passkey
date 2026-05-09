@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { decrypt, encrypt } from "../../src/crypto";
+import { decrypt, encrypt, encryptWithServerKey } from "../../src/crypto";
+import { arrayBufferToBase64Url, base64UrlToArrayBuffer } from "../../src/utils";
 
 type DeviceRiskPayload = {
   userId: string;
@@ -34,6 +35,71 @@ describe("generic payload crypto", () => {
 
     const decrypted = await decrypt<DeviceRiskPayload>(encrypted);
     expect(decrypted).toEqual(samplePayload);
+  });
+
+  itIfWebCrypto("encrypts with server public key and decrypts with private key", async () => {
+    const keyPair = (await globalThis.crypto.subtle.generateKey(
+      {
+        name: "RSA-OAEP",
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt"],
+    )) as CryptoKeyPair;
+
+    const publicKeySpki = await globalThis.crypto.subtle.exportKey("spki", keyPair.publicKey);
+    const privateKeyPkcs8 = await globalThis.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+
+    const encrypted = await encryptWithServerKey<DeviceRiskPayload>(samplePayload, {
+      serverKeyEncryption: {
+        publicKeySpki: arrayBufferToBase64Url(publicKeySpki),
+        keyId: "demo-key-1",
+      },
+    });
+
+    const bundle = JSON.parse(
+      new TextDecoder().decode(base64UrlToArrayBuffer(encrypted)),
+    ) as Record<string, unknown>;
+
+    expect(bundle["encryptedKeyMaterial"]).toEqual(expect.any(String));
+    expect(bundle["keyMaterial"]).toBeUndefined();
+    expect(bundle["keyWrappingAlgorithm"]).toBe("RSA-OAEP");
+    expect(bundle["keyWrappingKeyId"]).toBe("demo-key-1");
+
+    const decrypted = await decrypt<DeviceRiskPayload>(encrypted, {
+      serverKeyDecryption: {
+        privateKeyPkcs8: arrayBufferToBase64Url(privateKeyPkcs8),
+      },
+    });
+
+    expect(decrypted).toEqual(samplePayload);
+  });
+
+  itIfWebCrypto("fails to decrypt wrapped key bundle without server private key", async () => {
+    const keyPair = (await globalThis.crypto.subtle.generateKey(
+      {
+        name: "RSA-OAEP",
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt"],
+    )) as CryptoKeyPair;
+
+    const publicKeySpki = await globalThis.crypto.subtle.exportKey("spki", keyPair.publicKey);
+
+    const encrypted = await encryptWithServerKey<DeviceRiskPayload>(samplePayload, {
+      serverKeyEncryption: {
+        publicKeySpki: arrayBufferToBase64Url(publicKeySpki),
+      },
+    });
+
+    await expect(decrypt<DeviceRiskPayload>(encrypted)).rejects.toThrow(
+      "Encrypted payload bundle requires a server private key to decrypt key material.",
+    );
   });
 
   it("throws when Web Crypto API is unavailable", async () => {

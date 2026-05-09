@@ -27,8 +27,8 @@ npm run dev
 - Open default: `http://localhost:5173`
 - Login/password onboarding demo: `http://localhost:5173/login.html`
 - Sensitive data vault demo: `http://localhost:5173/sensitive.html`
-- Card payment step-up demo: `http://localhost:5173/card-pay.html`
-- Dedicated confirmPayment demo: `http://localhost:5173/payment-step-up/index.html`
+- Account service demo: `http://localhost:5173/account-service/index.html`
+- Card service demo: `http://localhost:5173/card-service/index.html`
 
 ## 3. Configure demo mode
 
@@ -81,14 +81,14 @@ Optional: change prefix via env var before starting backend:
 PASSKEY_DEMO_ENROLLMENT_REQUIRED_ACCOUNT_PREFIX=needs_enroll_ npm run server:device
 ```
 
-In dedicated confirmPayment demo page, you can run full lifecycle from UI:
+In account-service demo page, you can run full lifecycle from UI:
 
 1. Verify account (OTP mock)
 2. Complete first account payment (policy mock)
 3. Enroll account passkey
 4. Confirm payment with passkey
 
-Page: `http://localhost:5173/payment-step-up/index.html`
+Page: `http://localhost:5173/account-service/index.html`
 
 ## 7. Device setup details
 

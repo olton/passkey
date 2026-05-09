@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>Passkey Card Service Demo</title>
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com"
+        />
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="../styles.css"
+        />
+    </head>
+    <body>
+        <div class="background-glow"></div>
+        <main class="layout">
+            <section class="card intro-card">
+                <p class="eyebrow">Card Service</p>
+                <h1>Card/Token Checkout With Passkey</h1>
+                <p>Single demo for card-service flow: new card (optional tokenization), tokenized card checkout, and optional passkey enrollment after successful payment.</p>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Environment</h2>
+                <label>
+                    API Base URL
+                    <input
+                        id="apiUrl"
+                        type="text"
+                        value="http://localhost:4100"
+                    />
+                </label>
+                <label>
+                    Username / Email
+                    <input
+                        id="username"
+                        type="email"
+                        value="card.service@example.com"
+                        autocomplete="username webauthn"
+                    />
+                </label>
+                <label>
+                    Display Name
+                    <input
+                        id="displayName"
+                        type="text"
+                        value="Card Service User"
+                    />
+                </label>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Flow Mode</h2>
+                <label>
+                    Payment Source
+                    <select id="paymentSource">
+                        <option value="new-card">New card (optional tokenization)</option>
+                        <option value="tokenized-card">Tokenized card</option>
+                    </select>
+                </label>
+                <p style="font-size: 0.9rem">Use "New card" to build demo token/fingerprint from card input, or "Tokenized card" to use existing token directly.</p>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Card Data (New Card Mode)</h2>
+                <label>
+                    Card Number
+                    <input
+                        id="cardNumber"
+                        type="text"
+                        value="4111111111111111"
+                        inputmode="numeric"
+                        autocomplete="cc-number"
+                    />
+                </label>
+                <label>
+                    Expiry (MM/YY)
+                    <input
+                        id="cardExpiry"
+                        type="text"
+                        value="12/29"
+                        autocomplete="cc-exp"
+                    />
+                </label>
+                <div class="actions-grid" style="grid-template-columns: 1fr">
+                    <button id="tokenizeCardBtn" type="button">Generate Token + Fingerprint</button>
+                </div>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Instrument</h2>
+                <label>
+                    Instrument Type
+                    <select id="instrumentType">
+                        <option value="token">token</option>
+                        <option value="card">card</option>
+                    </select>
+                </label>
+                <label>
+                    Token ID
+                    <input
+                        id="tokenId"
+                        type="text"
+                        value="tok_demo_1"
+                    />
+                </label>
+                <label>
+                    Card Fingerprint
+                    <input
+                        id="cardFingerprint"
+                        type="text"
+                        value="card_fp_demo_1"
+                    />
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; margin-top: 6px">
+                    <input
+                        id="passkeyAlreadyBound"
+                        type="checkbox"
+                    />
+                    Passkey already bound for this card/token
+                </label>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Payment Context</h2>
+                <label>
+                    Payment Intent ID
+                    <input
+                        id="paymentIntentId"
+                        type="text"
+                        value="pi_card_1"
+                    />
+                </label>
+                <label>
+                    Merchant ID
+                    <input
+                        id="merchantId"
+                        type="text"
+                        value="merchant_1"
+                    />
+                </label>
+                <label>
+                    Amount (minor units)
+                    <input
+                        id="amountMinor"
+                        type="number"
+                        value="2500"
+                        min="1"
+                    />
+                </label>
+                <label>
+                    Currency
+                    <input
+                        id="currency"
+                        type="text"
+                        value="UAH"
+                    />
+                </label>
+            </section>
+
+            <section class="card actions-card">
+                <h2>Actions</h2>
+                <div class="actions-grid" style="grid-template-columns: 1fr">
+                    <button id="confirmCheckoutBtn" type="button">Confirm Card Checkout</button>
+                    <button id="enrollPasskeyBtn" type="button">Enroll Card Passkey (Optional)</button>
+                    <button id="clearLogsBtn" type="button">Clear Logs</button>
+                </div>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Status</h2>
+                <p id="status" style="margin-bottom: 10px">Ready</p>
+                <p style="font-size: 0.9rem">Gateway success + passkey not bound produces enrollment offer for next payments.</p>
+            </section>
+
+            <section class="card log-card">
+                <h2>Flow Logs</h2>
+                <pre id="logs" aria-live="polite"></pre>
+            </section>
+        </main>
+
+        <script type="module" src="./card-service.ts"></script>
+    </body>
+</html>

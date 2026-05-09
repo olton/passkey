@@ -19,6 +19,7 @@ export enum StepUpDecision {
 export type WebClientScenario =
   | "login"
   | "payment-step-up"
+  | "payment-card-token-step-up"
   | "sensitive-action"
   | "passwordless-recovery";
 
@@ -61,6 +62,20 @@ export interface PaymentContext {
  * @deprecated Use `PaymentContext` instead. Kept for backward compatibility.
  */
 export type CardPaymentContext = PaymentContext;
+
+/**
+ * Supported payment instrument types for card/token checkout flow.
+ */
+export type PaymentInstrumentType = "card" | "token";
+
+/**
+ * Payment instrument reference used by isolated card/token passkey flow.
+ */
+export interface PaymentInstrumentRef {
+  type: PaymentInstrumentType;
+  cardFingerprint?: string;
+  tokenId?: string;
+}
 
 /**
  * JSON representation of a WebAuthn credential descriptor.
@@ -198,6 +213,146 @@ export interface FinishPaymentStepUpInput {
   credential: CredentialAssertionJSON;
   challengeId?: string;
   context?: Record<string, unknown>;
+}
+
+/**
+ * Decision returned after card/token step-up verification.
+ */
+export enum CardTokenAuthDecision {
+  Approved = "approved",
+  FallbackTo3DS = "fallback_to_3ds",
+  Rejected = "rejected",
+  Timeout = "timeout",
+  Cancelled = "cancelled",
+  NotSupported = "not_supported",
+  Error = "error",
+}
+
+/**
+ * Final payment authorization status returned by PSP/acquirer path.
+ */
+export enum CardTokenGatewayStatus {
+  Success = "success",
+  Declined = "declined",
+  DeclinedFraud = "declined_fraud",
+  Error = "error",
+}
+
+/**
+ * Post-payment enrollment action outcome for card/token passkey binding.
+ */
+export enum CardTokenEnrollmentOutcome {
+  Bound = "bound",
+  SkippedByUser = "skipped_by_user",
+  Failed = "failed",
+}
+
+/**
+ * Input for isolated card/token step-up options request.
+ */
+export interface BeginCardTokenStepUpInput {
+  payment: PaymentContext;
+  instrument: PaymentInstrumentRef;
+  userId?: string;
+  context?: Record<string, unknown>;
+  riskSignals?: RiskSignals;
+}
+
+/**
+ * Input for isolated card/token step-up verification request.
+ */
+export interface FinishCardTokenStepUpInput {
+  payment: PaymentContext;
+  instrument: PaymentInstrumentRef;
+  credential: CredentialAssertionJSON;
+  challengeId?: string;
+  context?: Record<string, unknown>;
+}
+
+/**
+ * Step-up verification response for isolated card/token flow.
+ */
+export interface CardTokenStepUpVerificationResult {
+  authDecision: CardTokenAuthDecision;
+  code?: string;
+  challengeId?: string;
+  message?: string;
+}
+
+/**
+ * Input for final payment authorization after successful step-up.
+ */
+export interface AuthorizeCardTokenPaymentInput {
+  payment: PaymentContext;
+  instrument: PaymentInstrumentRef;
+  challengeId?: string;
+  context?: Record<string, unknown>;
+}
+
+/**
+ * Final authorization response for isolated card/token payment flow.
+ */
+export interface AuthorizeCardTokenPaymentResult {
+  gatewayStatus: CardTokenGatewayStatus;
+  code?: string;
+  reason?: string;
+  message?: string;
+}
+
+/**
+ * Input for card/token post-payment passkey enrollment request.
+ */
+export interface BeginCardTokenEnrollmentInput {
+  payment: PaymentContext;
+  instrument: PaymentInstrumentRef;
+  user: PasskeyUser;
+  context?: Record<string, unknown>;
+  riskSignals?: RiskSignals;
+}
+
+/**
+ * Input for card/token post-payment passkey enrollment verification.
+ */
+export interface FinishCardTokenEnrollmentInput {
+  payment: PaymentContext;
+  instrument: PaymentInstrumentRef;
+  userId: string;
+  credential: CredentialAttestationJSON;
+  challengeId?: string;
+  context?: Record<string, unknown>;
+}
+
+/**
+ * Result of post-payment passkey enrollment for card/token flow.
+ */
+export interface CardTokenEnrollmentResult {
+  outcome: CardTokenEnrollmentOutcome;
+  code?: string;
+  message?: string;
+}
+
+/**
+ * Input of isolated card/token checkout confirmation.
+ */
+export interface ConfirmCardTokenCheckoutInput {
+  payment: PaymentContext;
+  instrument: PaymentInstrumentRef;
+  userId?: string;
+  context?: Record<string, unknown>;
+  riskSignals?: RiskSignals;
+  passkeyAlreadyBound?: boolean;
+}
+
+/**
+ * Result of isolated card/token checkout orchestration.
+ */
+export interface CardTokenCheckoutResult {
+  authDecision: CardTokenAuthDecision;
+  gatewayStatus?: CardTokenGatewayStatus;
+  usedPasskey: boolean;
+  shouldOfferEnrollment: boolean;
+  code?: string;
+  message?: string;
 }
 
 /**

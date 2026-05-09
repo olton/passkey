@@ -1,6 +1,13 @@
 import { PasskeyAuthService } from '../auth';
-import { PaymentStepUpService } from '../payments';
-import type { AuthenticationVerificationResult, BeginAuthenticationInput, BeginPaymentStepUpInput, PaymentStepUpResult } from '../types';
+import { AccountService, CardService } from '../payments';
+import type {
+    AuthenticationVerificationResult,
+    BeginAuthenticationInput,
+    BeginPaymentStepUpInput,
+    CardTokenCheckoutResult,
+    ConfirmCardTokenCheckoutInput,
+    PaymentStepUpResult,
+} from '../types';
 import { DEFAULT_LOCALE, t } from '../i18n';
 
 /**
@@ -17,6 +24,14 @@ export interface LoginUseCaseRequest {
 export interface PaymentStepUpUseCaseRequest {
     scenario: 'payment-step-up';
     input: BeginPaymentStepUpInput;
+}
+
+/**
+ * Input for isolated card/token payment step-up use-case.
+ */
+export interface PaymentCardTokenStepUpUseCaseRequest {
+    scenario: 'payment-card-token-step-up';
+    input: ConfirmCardTokenCheckoutInput;
 }
 
 /**
@@ -38,12 +53,12 @@ export interface PasswordlessRecoveryUseCaseRequest {
 /**
  * Discriminated union of all supported web-client passkey use-cases.
  */
-export type WebClientUseCaseRequest = LoginUseCaseRequest | PaymentStepUpUseCaseRequest | SensitiveActionUseCaseRequest | PasswordlessRecoveryUseCaseRequest;
+export type WebClientUseCaseRequest = LoginUseCaseRequest | PaymentStepUpUseCaseRequest | PaymentCardTokenStepUpUseCaseRequest | SensitiveActionUseCaseRequest | PasswordlessRecoveryUseCaseRequest;
 
 /**
  * Unified response for passkey use-case orchestrator.
  */
-export type WebClientUseCaseResponse = AuthenticationVerificationResult | PaymentStepUpResult;
+export type WebClientUseCaseResponse = AuthenticationVerificationResult | PaymentStepUpResult | CardTokenCheckoutResult;
 
 /**
  * Facade that maps business scenarios to underlying auth/payment services.
@@ -54,8 +69,9 @@ export class WebClientUseCases {
      */
     constructor(
         private readonly auth: PasskeyAuthService,
-        private readonly payments: PaymentStepUpService,
+        private readonly payments: AccountService,
         private readonly locale: string = DEFAULT_LOCALE,
+        private readonly cardPayments?: CardService,
     ) {}
 
     /**
@@ -67,6 +83,12 @@ export class WebClientUseCases {
                 return this.auth.login(request.input);
             case 'payment-step-up':
                 return this.payments.confirmPayment(request.input);
+            case 'payment-card-token-step-up':
+                if (!this.cardPayments) {
+                    throw new Error(t(this.locale, 'errors.useCases.cardTokenUnavailable', 'Card/token checkout use-case is not configured.'));
+                }
+
+                return this.cardPayments.confirm(request.input);
             case 'sensitive-action':
                 return this.auth.confirmSensitiveAction(request.input);
             case 'passwordless-recovery':

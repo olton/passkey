@@ -6,6 +6,9 @@ Passkey SDK - is a library for web authentication using passkey features such as
 
 - [Platform authenticators](#platform-authenticators)
 - [Documentation Index](#documentation-index)
+- [Payment Integration Guides](#payment-integration-guides)
+- [Payment Flow Diagrams](#payment-flow-diagrams)
+- [Sensitive Vault Flow Diagram](#sensitive-vault-flow-diagram)
 - [Key Benefits](#key-benefits)
 - [Features](#features)
 - [Installation](#installation)
@@ -44,6 +47,177 @@ Platform runbooks:
 - Android setup: [docs/android-demo.md](docs/android-demo.md)
 - iOS setup: [docs/ios-demo.md](docs/ios-demo.md)
 - Linux setup: [docs/linux-demo.md](docs/linux-demo.md)
+
+## Payment Integration Guides
+
+- Account service integration: [src/payments/account-service-integration.md](src/payments/account-service-integration.md)
+- Card service integration: [src/payments/card-service-integration.md](src/payments/card-service-integration.md)
+
+## Payment Flow Diagrams
+
+### Account service flow
+
+```mermaid
+sequenceDiagram
+	participant U as User
+	participant F as Frontend
+	participant S as Passkey SDK
+	participant B as Backend
+
+	U->>F: Click "Pay"
+	F->>S: confirmPayment(input with accountId)
+	S->>B: beginPaymentStepUp(input)
+
+	alt Account has enrolled passkey
+		B-->>S: assertion options
+		S-->>F: request WebAuthn assertion
+		F->>U: Prompt biometrics (FaceID/TouchID)
+		U-->>F: Confirm biometrics
+		F->>S: WebAuthn assertion
+		S->>B: finishPaymentStepUp(assertion)
+		B-->>S: decision = approved
+		S-->>F: PaymentStepUpResult(approved)
+		F->>U: Payment success
+	else Account not enrolled
+		B-->>S: decision = enrollment_required
+		S-->>F: PaymentStepUpResult(enrollment_required)
+
+		alt Mandatory enrollment policy
+			F->>U: Start verification/enrollment flow
+			F->>F: OTP/verification -> passkey enrollment
+			F->>S: confirmPayment(retry)
+			S->>B: beginPaymentStepUp(retry)
+			B-->>S: decision = approved or fallback_to_3ds
+			S-->>F: Retry result
+		else Optional enrollment policy
+			F->>F: Run allowed first-payment fallback
+			F->>U: Offer passkey enrollment after success
+		end
+	end
+
+	alt Auth failed or timeout
+		B-->>S: rejected/timeout or mapped failure
+		S-->>F: non-approved result
+		F->>U: Show failure/retry UI
+	end
+```
+
+### Card service flow
+
+```mermaid
+sequenceDiagram
+	participant U as User
+	participant F as Frontend
+	participant B as Backend
+	participant P as Payment Gateway
+
+	U->>F: Enter card details
+	Note over F: encrypt(cardData) <br/>(src/crypto/index.ts)
+	F->>B: Send encrypted bundle
+
+	B->>B: decrypt(bundle) -> PAN
+	B->>B: Check if passkey exists for this card/token
+
+	alt Passkey exists
+		B-->>F: Request step-up (WebAuthn)
+		F->>U: Biometrics (FaceID/TouchID)
+		U-->>F: Confirmation
+		F->>B: WebAuthn assertion
+	else No passkey / 3DS required
+		B-->>F: Redirect to 3DS
+		U->>F: OTP / app approval
+		F->>B: 3DS result
+	end
+
+	alt Authentication completed
+		B->>P: Authorize payment (PAN/Token)
+		P-->>B: Payment status (success/declined/declined_fraud/error)
+
+		alt Payment success
+			alt Passkey not enrolled yet
+				B-->>F: Offer passkey enrollment
+				F->>U: "Use FaceID for future purchases?"
+				alt User accepts
+					U->>F: Yes
+					F->>B: Passkey registration (WebAuthn attestation)
+					B-->>F: Passkey linked (User + Card/Token + Passkey)
+				else User declines
+					U->>F: No
+					Note over F,B: Next payments for this card/token follow <br/>current flow: 3DS or step-up
+				end
+			else Passkey already enrolled
+				Note over B: Faster future checkouts with step-up
+			end
+
+			B-->>F: Final status (success)
+			F->>U: Purchase complete
+		else Payment failed (declined / declined_fraud / error)
+			B-->>F: Payment error (code/reason)
+			F->>U: Payment failed, try another method
+		end
+	else Authentication failed / timeout
+		B-->>F: Authentication error (failed/timeout)
+		F->>U: Payment failed, authentication was not completed
+	end
+```
+
+## Sensitive Vault Flow Diagram
+
+```mermaid
+sequenceDiagram
+	participant U as User
+	participant F as Sensitive Demo UI
+	participant S as Passkey SDK
+	participant B as Backend
+	participant V as Sensitive Vault
+
+	Note over U,F: One-time setup
+	U->>F: Click "Register Passkey"
+	F->>S: register(user)
+	S->>B: /passkeys/registration/options
+	B-->>S: Creation options
+	S-->>F: navigator.credentials.create
+	F->>U: Biometric verification
+	F->>S: Attestation result
+	S->>B: /passkeys/registration/verify
+	B-->>F: Registration verified
+
+	Note over U,F: Hide secret flow
+	U->>F: Enter secret + click "Hide Secret"
+	F->>S: login(username)
+	S->>B: /passkeys/authentication/options
+	B-->>S: Assertion options
+	S-->>F: navigator.credentials.get
+	F->>U: Biometric verification
+	F->>S: Assertion result
+	S->>B: /passkeys/authentication/verify
+	B-->>F: session.accessToken
+	F->>F: Encrypt secret (AES-GCM)
+	F->>B: POST /demo/sensitive/store (encrypted payload + token)
+	B->>V: Store encrypted payload
+	B-->>F: Stored
+
+	Note over U,F: Reveal secret flow
+	U->>F: Click "Unlock Secret"
+	F->>S: login(username)
+	S->>B: /passkeys/authentication/options + verify
+	B-->>F: session.accessToken
+	F->>B: POST /demo/sensitive/reveal (token)
+	B->>V: Load encrypted payload
+	V-->>B: encryptedData + iv + keyMaterial
+	B-->>F: Encrypted payload
+	F->>F: Decrypt locally (AES-GCM)
+	F->>U: Show decrypted secret
+
+	Note over U,F: Clear secret flow
+	U->>F: Click "Clear Secret"
+	F->>S: login(username)
+	S->>B: /passkeys/authentication/options + verify
+	B-->>F: session.accessToken
+	F->>B: POST /demo/sensitive/clear (token)
+	B->>V: Delete payload
+	B-->>F: Cleared
+```
 
 ## Key Benefits
 

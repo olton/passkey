@@ -11,7 +11,7 @@ import { DEFAULT_LOCALE, t } from '../i18n';
  * Note: enrollment policy is backend-driven. This service reports decisions,
  * but does not enforce a specific product policy (mandatory vs optional enrollment).
  */
-export class PaymentStepUpService {
+export class AccountService {
     /**
      * Creates service with backend adapter and WebAuthn transport.
      */

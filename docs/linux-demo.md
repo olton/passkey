@@ -42,7 +42,7 @@ Useful pages:
 
 - Login/password onboarding: `http://localhost:5173/login.html`
 - Sensitive vault: `http://localhost:5173/sensitive.html`
-- Card payment step-up: `http://localhost:5173/card-pay.html`
+- Card service flow: `http://localhost:5173/card-service/index.html`
 
 ## 4. Use reachable URLs
 

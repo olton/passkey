@@ -109,9 +109,9 @@ clearLogsBtn.addEventListener('click', () => {
     appendLog('Logs cleared.');
 });
 
-appendLog('Payment step-up demo ready.');
+appendLog('Account service demo ready.');
 appendLog('Run backend: npm run server:device');
-appendLog('Open this page: http://localhost:5173/payment-step-up/index.html');
+appendLog('Open this page: http://localhost:5173/account-service/index.html');
 hydrateLifecycleState();
 renderLifecycleState();
 
@@ -119,13 +119,14 @@ getElement<HTMLInputElement>('username').addEventListener('input', onIdentityCha
 getElement<HTMLInputElement>('accountId').addEventListener('input', onIdentityChanged);
 
 /**
- * Creates passkey client for payment-step-up demo.
+ * Creates passkey client for account-service demo.
  */
 function createClient() {
     const adapter = createFetchBackendAdapter({
         baseUrl: getValue('apiUrl'),
         defaultHeaders: {
             'x-demo-client': 'passkey-payment-step-up-demo',
+            'x-demo-flow': 'account-service',
         },
     });
 
@@ -232,7 +233,7 @@ function buildPaymentInput(): BeginPaymentStepUpInput {
         },
         ...(username ? { userId: username.toLowerCase() } : {}),
         context: {
-            source: 'payment-step-up-demo',
+            source: 'account-service-demo',
             flow: 'confirm-payment',
             username,
         },
@@ -256,7 +257,7 @@ function buildRegistrationInput(): BeginRegistrationInput {
             displayName: getValue('displayName').trim() || 'Payment Demo User',
         },
         context: {
-            source: 'payment-step-up-demo',
+            source: 'account-service-demo',
             flow: 'account-passkey-enrollment',
             accountId,
         },
