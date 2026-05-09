@@ -1,122 +1,208 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Passkey Payment Step-Up Demo</title>
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com"
-    />
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../styles.css" />
-  </head>
-  <body>
-    <div class="background-glow"></div>
-    <main class="layout">
-      <section class="card intro-card">
-        <p class="eyebrow">Payment Step-Up</p>
-        <h1>Confirm Payment With Account-Level Passkey</h1>
-        <p>
-          Dedicated demo for the SDK <strong>confirmPayment</strong> flow.
-          Use account identifiers to test <strong>approved</strong>,
-          <strong>fallback_to_3ds</strong>, and
-          <strong>enrollment_required</strong> branches.
-        </p>
-      </section>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>Passkey Payment Step-Up Demo</title>
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com"
+        />
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="../styles.css"
+        />
+    </head>
+    <body>
+        <div class="background-glow"></div>
+        <main class="layout">
+            <section class="card intro-card">
+                <p class="eyebrow">Payment Step-Up</p>
+                <h1>Confirm Payment With Account-Level Passkey</h1>
+                <p>
+                    Dedicated demo for the SDK <strong>confirmPayment</strong> flow. Use account identifiers to test <strong>approved</strong>, <strong>fallback_to_3ds</strong>, and
+                    <strong>enrollment_required</strong> branches.
+                </p>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Environment</h2>
-        <label>
-          API Base URL
-          <input id="apiUrl" type="text" value="http://localhost:4100" />
-        </label>
-        <label>
-          Username / Email
-          <input id="username" type="email" value="pay.demo@example.com" autocomplete="username webauthn" />
-        </label>
-        <label>
-          Display Name
-          <input id="displayName" type="text" value="Payment Demo User" />
-        </label>
-      </section>
+            <section class="card controls-card">
+                <h2>Environment</h2>
+                <label>
+                    API Base URL
+                    <input
+                        id="apiUrl"
+                        type="text"
+                        value="http://localhost:4100"
+                    />
+                </label>
+                <label>
+                    Username / Email
+                    <input
+                        id="username"
+                        type="email"
+                        value="pay.demo@example.com"
+                        autocomplete="username webauthn"
+                    />
+                </label>
+                <label>
+                    Display Name
+                    <input
+                        id="displayName"
+                        type="text"
+                        value="Payment Demo User"
+                    />
+                </label>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Payment Context</h2>
-        <label>
-          Payment Intent ID
-          <input id="paymentIntentId" type="text" value="pi_demo_1" />
-        </label>
-        <label>
-          Merchant ID
-          <input id="merchantId" type="text" value="merchant_1" />
-        </label>
-        <label>
-          Account ID
-          <input id="accountId" type="text" value="click2pay_demo_1" />
-        </label>
-        <p style="font-size: 0.9rem; margin-top: 6px;">
-          Tip: set Account ID to <code>unenrolled_click2pay_demo</code> to force
-          enrollment-required behavior in demo backends.
-        </p>
-      </section>
+            <section class="card controls-card">
+                <h2>Payment Context</h2>
+                <label>
+                    Payment Intent ID
+                    <input
+                        id="paymentIntentId"
+                        type="text"
+                        value="pi_demo_1"
+                    />
+                </label>
+                <label>
+                    Merchant ID
+                    <input
+                        id="merchantId"
+                        type="text"
+                        value="merchant_1"
+                    />
+                </label>
+                <label>
+                    Account ID
+                    <input
+                        id="accountId"
+                        type="text"
+                        value="click2pay_demo_1"
+                    />
+                </label>
+                <p style="font-size: 0.9rem; margin-top: 6px">Tip: set Account ID to <code>unenrolled_click2pay_demo</code> to force enrollment-required behavior in demo backends.</p>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Amount</h2>
-        <label>
-          Amount (minor units)
-          <input id="amountMinor" type="number" value="2500" min="1" />
-        </label>
-        <label>
-          Currency
-          <input id="currency" type="text" value="UAH" />
-        </label>
-      </section>
+            <section class="card controls-card">
+                <h2>Amount</h2>
+                <label>
+                    Amount (minor units)
+                    <input
+                        id="amountMinor"
+                        type="number"
+                        value="2500"
+                        min="1"
+                    />
+                </label>
+                <label>
+                    Currency
+                    <input
+                        id="currency"
+                        type="text"
+                        value="UAH"
+                    />
+                </label>
+            </section>
 
-      <section class="card actions-card">
-        <h2>Actions</h2>
-        <div class="actions-grid" style="grid-template-columns: 1fr;">
-          <button id="verifyAccountBtn" type="button">1) Verify Account (OTP Mock)</button>
-          <button id="completeFirstPaymentBtn" type="button">2) Complete First Account Payment (Policy Mock)</button>
-          <button id="enrollPasskeyBtn" type="button">3) Enroll Account Passkey</button>
-          <button id="runLifecycleBtn" type="button">Run Full Lifecycle (1 -> 3)</button>
-          <button id="confirmPaymentBtn">Confirm Payment (Passkey)</button>
-          <button id="suggest3dsBtn" type="button">Set Amount For 3DS Fallback</button>
-          <button id="suggestEnrollBtn" type="button">Set Account For Enrollment Required</button>
-          <button id="clearLogsBtn">Clear Logs</button>
-        </div>
-      </section>
+            <section class="card actions-card">
+                <h2>Actions</h2>
+                <div
+                    class="actions-grid"
+                    style="grid-template-columns: 1fr"
+                >
+                    <button
+                        id="verifyAccountBtn"
+                        type="button"
+                    >
+                        1) Verify Account (OTP Mock)
+                    </button>
+                    <button
+                        id="completeFirstPaymentBtn"
+                        type="button"
+                    >
+                        2) Complete First Account Payment (Policy Mock)
+                    </button>
+                    <button
+                        id="enrollPasskeyBtn"
+                        type="button"
+                    >
+                        3) Enroll Account Passkey
+                    </button>
+                    <button
+                        id="runLifecycleBtn"
+                        type="button"
+                    >
+                        Run Full Lifecycle (1 -> 3)
+                    </button>
+                    <button id="confirmPaymentBtn">Confirm Payment (Passkey)</button>
+                    <button
+                        id="suggest3dsBtn"
+                        type="button"
+                    >
+                        Set Amount For 3DS Fallback
+                    </button>
+                    <button
+                        id="suggestEnrollBtn"
+                        type="button"
+                    >
+                        Set Account For Enrollment Required
+                    </button>
+                    <button id="clearLogsBtn">Clear Logs</button>
+                </div>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Lifecycle State</h2>
-        <p id="stateAccountVerified" style="margin-bottom: 8px;">Account verification (OTP): pending</p>
-        <p id="stateFirstPayment" style="margin-bottom: 8px;">First account payment: pending</p>
-        <p id="statePasskeyEnrolled">Account passkey enrollment: pending</p>
-      </section>
+            <section class="card controls-card">
+                <h2>Lifecycle State</h2>
+                <p
+                    id="stateAccountVerified"
+                    style="margin-bottom: 8px"
+                >
+                    Account verification (OTP): pending
+                </p>
+                <p
+                    id="stateFirstPayment"
+                    style="margin-bottom: 8px"
+                >
+                    First account payment: pending
+                </p>
+                <p id="statePasskeyEnrolled">Account passkey enrollment: pending</p>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Status</h2>
-        <p id="status" style="margin-bottom: 10px;">Ready</p>
-        <p style="font-size: 0.9rem;">
-          When <strong>decision = enrollment_required</strong>, follow your backend policy
-          (mandatory enrollment or allowed fallback).
-        </p>
-      </section>
+            <section class="card controls-card">
+                <h2>Status</h2>
+                <p
+                    id="status"
+                    style="margin-bottom: 10px"
+                >
+                    Ready
+                </p>
+                <p style="font-size: 0.9rem">When <strong>decision = enrollment_required</strong>, follow your backend policy (mandatory enrollment or allowed fallback).</p>
+            </section>
 
-      <section class="card log-card">
-        <h2>Flow Logs</h2>
-        <pre id="logs" aria-live="polite"></pre>
-      </section>
-    </main>
+            <section class="card log-card">
+                <h2>Flow Logs</h2>
+                <pre
+                    id="logs"
+                    aria-live="polite"
+                ></pre>
+            </section>
+        </main>
 
-    <script type="module" src="./payment-step-up.ts"></script>
-  </body>
+        <script
+            type="module"
+            src="./payment-step-up.ts"
+        ></script>
+    </body>
 </html>

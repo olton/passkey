@@ -1,156 +1,276 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Passkey Card Payment Demo</title>
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com"
-    />
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="../styles.css" />
-  </head>
-  <body>
-    <div class="background-glow"></div>
-    <main class="layout">
-      <section class="card intro-card">
-        <p class="eyebrow">Card Pay Demo</p>
-        <h1>3DS Once, Then Pay With Passkey</h1>
-        <p>
-          Flow: enter card data, complete 3DS mock once, encrypt and store
-          card token through passkey, then pay with passkey without 3DS.
-        </p>
-      </section>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>Passkey Card Payment Demo</title>
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com"
+        />
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="../styles.css"
+        />
+    </head>
+    <body>
+        <div class="background-glow"></div>
+        <main class="layout">
+            <section class="card intro-card">
+                <p class="eyebrow">Card Pay Demo</p>
+                <h1>3DS Once, Then Pay With Passkey</h1>
+                <p>Flow: enter card data, complete 3DS mock once, encrypt and store card token through passkey, then pay with passkey without 3DS.</p>
+            </section>
 
-      <section class="card intro-card">
-        <h2>API Base URL</h2>
-        <label for="apiUrl">
-          <input id="apiUrl" type="text" value="http://localhost:4100" />
-        </label>
-      </section>
+            <section class="card intro-card">
+                <h2>API Base URL</h2>
+                <label for="apiUrl">
+                    <input
+                        id="apiUrl"
+                        type="text"
+                        value="http://localhost:4100"
+                    />
+                </label>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Identity</h2>
-        <label>
-          User ID
-          <input id="userId" type="text" value="user_card_1" />
-        </label>
-        <label>
-          Username / Email
-          <input id="username" type="email" value="card.demo@example.com" autocomplete="username webauthn" />
-        </label>
-        <label>
-          Display Name
-          <input id="displayName" type="text" value="Card Demo User" />
-        </label>
-      </section>
+            <section class="card controls-card">
+                <h2>Identity</h2>
+                <label>
+                    User ID
+                    <input
+                        id="userId"
+                        type="text"
+                        value="user_card_1"
+                    />
+                </label>
+                <label>
+                    Username / Email
+                    <input
+                        id="username"
+                        type="email"
+                        value="card.demo@example.com"
+                        autocomplete="username webauthn"
+                    />
+                </label>
+                <label>
+                    Display Name
+                    <input
+                        id="displayName"
+                        type="text"
+                        value="Card Demo User"
+                    />
+                </label>
+            </section>
 
-      <section class="card controls-card">
-        <h2>Card Data</h2>
-        <label>
-          Card Number
-          <input id="cardNumber" type="text" value="4111111111111111" inputmode="numeric" autocomplete="cc-number" />
-        </label>
-        <div class="row-data">
-          <label>
-            Expiry (MM/YY)
-            <input id="cardExpiry" type="text" value="12/29" autocomplete="cc-exp" />
-          </label>
-          <label>
-            CVV
-            <input id="cardCvv" type="password" value="123" inputmode="numeric" autocomplete="cc-csc" />
-          </label>
+            <section class="card controls-card">
+                <h2>Card Data</h2>
+                <label>
+                    Card Number
+                    <input
+                        id="cardNumber"
+                        type="text"
+                        value="4111111111111111"
+                        inputmode="numeric"
+                        autocomplete="cc-number"
+                    />
+                </label>
+                <div class="row-data">
+                    <label>
+                        Expiry (MM/YY)
+                        <input
+                            id="cardExpiry"
+                            type="text"
+                            value="12/29"
+                            autocomplete="cc-exp"
+                        />
+                    </label>
+                    <label>
+                        CVV
+                        <input
+                            id="cardCvv"
+                            type="password"
+                            value="123"
+                            inputmode="numeric"
+                            autocomplete="cc-csc"
+                        />
+                    </label>
+                </div>
+                <label>
+                    Cardholder Name
+                    <input
+                        id="cardholder"
+                        type="text"
+                        value="Demo User"
+                        autocomplete="cc-name"
+                    />
+                </label>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Payment Context</h2>
+                <label>
+                    Amount (minor units - cents)
+                    <input
+                        id="amountMinor"
+                        type="number"
+                        value="2500"
+                        min="1"
+                    />
+                </label>
+                <label>
+                    Currency
+                    <input
+                        id="currency"
+                        type="text"
+                        value="UAH"
+                    />
+                </label>
+                <div class="row-data">
+                    <label>
+                        Terminal ID
+                        <input
+                            id="terminalId"
+                            type="text"
+                            value="terminal_123"
+                        />
+                    </label>
+                    <label>
+                        Merchant ID
+                        <input
+                            id="merchantId"
+                            type="text"
+                            value="merchant_123"
+                        />
+                    </label>
+                </div>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Stored Card Object</h2>
+                <label>
+                    Stored Token Data
+                    <textarea
+                        id="storedCardObject"
+                        rows="9"
+                        readonly
+                        placeholder="Encrypted card object will be shown here"
+                    ></textarea>
+                </label>
+            </section>
+
+            <section class="card actions-card">
+                <h2>Actions</h2>
+                <div
+                    class="actions-grid"
+                    style="grid-template-columns: 1fr"
+                >
+                    <button id="threeDsBtn">2) Complete 3DS Mock</button>
+                    <button
+                        id="saveCardBtn"
+                        disabled
+                    >
+                        3) Encrypt and Save Card via Passkey
+                    </button>
+                    <button
+                        id="payBtn"
+                        disabled
+                    >
+                        4) Pay via Passkey (No 3DS)
+                    </button>
+                    <button
+                        id="clearCardBtn"
+                        disabled
+                    >
+                        Clear Saved Card
+                    </button>
+                    <button id="clearLogsBtn">Clear Logs</button>
+                </div>
+            </section>
+
+            <section class="card controls-card">
+                <h2>Status</h2>
+                <p
+                    id="status"
+                    style="margin-bottom: 10px"
+                >
+                    Ready
+                </p>
+                <p style="font-size: 0.9rem">Use device backend and real platform authenticator (For example: Windows Hello) for passkey prompts.</p>
+            </section>
+
+            <section class="card log-card">
+                <h2>Flow Logs</h2>
+                <pre
+                    id="logs"
+                    aria-live="polite"
+                ></pre>
+            </section>
+        </main>
+
+        <div
+            id="threeDsModal"
+            class="modal hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="threeDsTitle"
+        >
+            <div class="modal-card">
+                <h2 id="threeDsTitle">3DS Mock Challenge</h2>
+                <p id="threeDsText">Approve or decline this 3DS mock challenge.</p>
+                <div
+                    class="actions-grid"
+                    style="grid-template-columns: 1fr 1fr"
+                >
+                    <button
+                        id="approveThreeDsBtn"
+                        type="button"
+                    >
+                        Approve
+                    </button>
+                    <button
+                        id="declineThreeDsBtn"
+                        type="button"
+                    >
+                        Decline
+                    </button>
+                </div>
+            </div>
         </div>
-        <label>
-          Cardholder Name
-          <input id="cardholder" type="text" value="Demo User" autocomplete="cc-name" />
-        </label>
-      </section>
 
-      <section class="card controls-card">
-        <h2>Payment Context</h2>
-        <label>
-          Amount (minor units - cents)
-          <input id="amountMinor" type="number" value="2500" min="1" />
-        </label>
-        <label>
-          Currency
-          <input id="currency" type="text" value="UAH" />
-        </label>
-        <div class="row-data">
-          <label>
-            Terminal ID
-            <input id="terminalId" type="text" value="terminal_123" />
-          </label>
-          <label>
-            Merchant ID
-            <input id="merchantId" type="text" value="merchant_123" />
-          </label>
+        <div
+            id="paymentResultModal"
+            class="modal hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="paymentResultTitle"
+        >
+            <div class="modal-card">
+                <h2 id="paymentResultTitle">OK</h2>
+                <p id="paymentResultText">Payment completed.</p>
+                <button
+                    id="closePaymentResultBtn"
+                    type="button"
+                >
+                    Close
+                </button>
+            </div>
         </div>
-      </section>
 
-      <section class="card controls-card">
-        <h2>Stored Card Object</h2>
-        <label>
-          Stored Token Data
-          <textarea id="storedCardObject" rows="9" readonly placeholder="Encrypted card object will be shown here"></textarea>
-        </label>
-      </section>
-
-      <section class="card actions-card">
-        <h2>Actions</h2>
-        <div class="actions-grid" style="grid-template-columns: 1fr;">
-          <button id="threeDsBtn">2) Complete 3DS Mock</button>
-          <button id="saveCardBtn" disabled>3) Encrypt and Save Card via Passkey</button>
-          <button id="payBtn" disabled>4) Pay via Passkey (No 3DS)</button>
-          <button id="clearCardBtn" disabled>Clear Saved Card</button>
-          <button id="clearLogsBtn">Clear Logs</button>
-        </div>
-      </section>
-
-      <section class="card controls-card">
-        <h2>Status</h2>
-        <p id="status" style="margin-bottom: 10px;">Ready</p>
-        <p style="font-size: 0.9rem;">
-          Use device backend and real platform authenticator (For example: Windows Hello)
-          for passkey prompts.
-        </p>
-      </section>
-
-      <section class="card log-card">
-        <h2>Flow Logs</h2>
-        <pre id="logs" aria-live="polite"></pre>
-      </section>
-    </main>
-
-    <div id="threeDsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="threeDsTitle">
-      <div class="modal-card">
-        <h2 id="threeDsTitle">3DS Mock Challenge</h2>
-        <p id="threeDsText">Approve or decline this 3DS mock challenge.</p>
-        <div class="actions-grid" style="grid-template-columns: 1fr 1fr;">
-          <button id="approveThreeDsBtn" type="button">Approve</button>
-          <button id="declineThreeDsBtn" type="button">Decline</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="paymentResultModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="paymentResultTitle">
-      <div class="modal-card">
-        <h2 id="paymentResultTitle">OK</h2>
-        <p id="paymentResultText">Payment completed.</p>
-        <button id="closePaymentResultBtn" type="button">Close</button>
-      </div>
-    </div>
-
-    <script type="module" src="./card-pay.ts"></script>
-  </body>
+        <script
+            type="module"
+            src="./card-pay.ts"
+        ></script>
+    </body>
 </html>
