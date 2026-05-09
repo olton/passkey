@@ -110,7 +110,7 @@ Demo servers in this repository are reference implementations, not a required ru
 2. `passkey.login(input)` and `passkey.confirmSensitiveAction(input)`:
 - `POST /passkeys/authentication/options`
 - `POST /passkeys/authentication/verify`
-3. `passkey.confirmCardPayment(input)`:
+3. `passkey.confirmPayment(input)`:
 - `POST /passkeys/payments/options`
 - `POST /passkeys/payments/verify`
 
@@ -191,7 +191,7 @@ Module docs:
 - [src/use-cases/readme.md](src/use-cases/readme.md)
 
 - `PasskeyAuthService` - high-level service for registration and authentication.
-- `PaymentStepUpService` - passkey step-up orchestration for card payments.
+- `PaymentStepUpService` - passkey step-up orchestration for account-level payment confirmation.
 - `WebClientUseCases` - scenario-oriented orchestrator for web clients.
 
 ### Scenario Contracts (Use Cases)
@@ -242,7 +242,7 @@ Module docs: [src/crypto/readme.md](src/crypto/readme.md)
 Module docs: [src/types/readme.md](src/types/readme.md)
 
 - `Base64Url` - string in base64url format.
-- `StepUpDecision` - step-up decision: approve/fallback/reject.
+- `StepUpDecision` - payment step-up decision (`approved`, `fallback_to_3ds`, `rejected`, `enrollment_required`).
 - `WebClientScenario` - supported web client business scenarios.
 
 ### User Profile, Risk Signals, and Payment Context
@@ -251,7 +251,8 @@ Module docs: [src/types/readme.md](src/types/readme.md)
 
 - `PasskeyUser` - user data for passkey registration.
 - `RiskSignals` - optional signals for fraud/risk analysis.
-- `CardPaymentContext` - business context for card payments.
+- `PaymentContext` - business context for payment confirmation.
+- `CardPaymentContext` - deprecated alias for backward compatibility.
 
 ### WebAuthn JSON DTOs
 
@@ -369,23 +370,30 @@ if (confirmResult.verified) {
 }
 ```
 
-#### C) Card payment step-up
+#### C) Payment step-up
 
 ```ts
-const paymentResult = await passkey.confirmCardPayment({
+const paymentResult = await passkey.confirmPayment({
 	payment: {
 		paymentIntentId: "pi_100",
 		amountMinor: 45000,
 		currency: "UAH",
 		merchantId: "merchant_1",
+		accountId: "click2pay_account_1",
 	},
 	userId: "user_1",
 });
 
-if (paymentResult.shouldTrigger3DS) {
+if (paymentResult.decision === "fallback_to_3ds") {
 	// your fallback path when passkey cannot approve payment
 }
+
+if (paymentResult.decision === "enrollment_required") {
+	// run account verification (email/phone OTP) and passkey enrollment flow
+}
 ```
+
+Passkey enrollment for this flow should happen once per account (for example after OTP verification), then the same passkey is reused for all cards in that account.
 
 #### D) Single entry-point (scenario mode)
 
@@ -454,7 +462,7 @@ Dedicated sensitive data vault demo with passkey access: `http://localhost:5173/
 - Register passkey
 - Login with passkey
 - Confirm a sensitive action
-- Confirm a card payment
+- Confirm a payment with account-level passkey reuse
 
 Tip: keep `Use mock WebAuthn transport` enabled for predictable local behavior.
 

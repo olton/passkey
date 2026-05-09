@@ -1,4 +1,5 @@
 import type { Base64Url } from "../types";
+import { DEFAULT_LOCALE, t } from "../i18n";
 
 /**
  * Converts a base64url string into an ArrayBuffer.
@@ -70,7 +71,13 @@ function decodeBase64(base64: string): Uint8Array {
     return Uint8Array.from(maybeBuffer.from(base64, "base64"));
   }
 
-  throw new Error("No base64 decoder is available in this runtime.");
+  throw new Error(
+    t(
+      DEFAULT_LOCALE,
+      "errors.base64.decoderUnavailable",
+      "No base64 decoder is available in this runtime.",
+    ),
+  );
 }
 
 /**
@@ -92,5 +99,11 @@ function encodeBase64(value: Uint8Array): string {
     return maybeBuffer.from(value).toString("base64");
   }
 
-  throw new Error("No base64 encoder is available in this runtime.");
+  throw new Error(
+    t(
+      DEFAULT_LOCALE,
+      "errors.base64.encoderUnavailable",
+      "No base64 encoder is available in this runtime.",
+    ),
+  );
 }

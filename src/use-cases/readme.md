@@ -7,7 +7,7 @@ Business scenario orchestration for web clients through a single entry point: `r
 ## Supported Scenarios
 
 - `login` passwordless login.
-- `payment-step-up` passkey confirmation for card payment.
+- `payment-step-up` passkey confirmation for payment with account-level passkey reuse.
 - `sensitive-action` confirmation of sensitive actions.
 - `passwordless-recovery` passwordless account recovery.
 

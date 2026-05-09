@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { WebClientUseCases } from "../../src/use-cases";
+import { StepUpDecision } from "../../src/types";
 
 describe("WebClientUseCases", () => {
   it("routes each scenario to corresponding service method", async () => {
@@ -10,10 +11,9 @@ describe("WebClientUseCases", () => {
     };
 
     const payments = {
-      confirmCardPayment: vi.fn().mockResolvedValue({
-        decision: "approved",
+      confirmPayment: vi.fn().mockResolvedValue({
+        decision: StepUpDecision.Approved,
         usedPasskey: true,
-        shouldTrigger3DS: false,
       }),
     };
 
@@ -50,14 +50,14 @@ describe("WebClientUseCases", () => {
     });
 
     expect(auth.login).toHaveBeenCalledTimes(1);
-    expect(payments.confirmCardPayment).toHaveBeenCalledTimes(1);
+    expect(payments.confirmPayment).toHaveBeenCalledTimes(1);
     expect(auth.confirmSensitiveAction).toHaveBeenCalledTimes(1);
     expect(auth.authenticate).toHaveBeenCalledWith(
       expect.objectContaining({ purpose: "passwordless-recovery" }),
     );
 
     expect(loginResult).toMatchObject({ verified: true, from: "login" });
-    expect(paymentResult).toMatchObject({ decision: "approved" });
+    expect(paymentResult).toMatchObject({ decision: StepUpDecision.Approved });
     expect(sensitiveResult).toMatchObject({ from: "sensitive" });
     expect(recoveryResult).toMatchObject({ from: "recovery" });
   });

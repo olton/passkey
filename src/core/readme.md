@@ -5,7 +5,7 @@
 `PasskeyClient` is the main SDK facade for web clients. It combines:
 
 - `auth` module for authentication.
-- `payments` module for payment step-up.
+- `payments` module for account-level payment step-up.
 - `useCases` module for scenario orchestration.
 
 ## Quick Start Example
@@ -62,3 +62,4 @@ await passkey.register({
 
 - The facade simplifies future scaling to new use cases without breaking API.
 - For enterprise projects, version DTOs between frontend and backend.
+- For payment scenarios, register passkey once per account and reuse it for all account cards.

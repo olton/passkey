@@ -6,7 +6,12 @@ export type Base64Url = string;
 /**
  * Decision returned after passkey-based payment step-up verification.
  */
-export type StepUpDecision = "approved" | "fallback_to_3ds" | "rejected";
+export enum StepUpDecision {
+  Approved = "approved",
+  FallbackTo3DS = "fallback_to_3ds",
+  Rejected = "rejected",
+  EnrollmentRequired = "enrollment_required",
+}
 
 /**
  * Common web-client scenarios where passkeys can replace passwords or 3DS.
@@ -39,17 +44,23 @@ export interface RiskSignals {
 }
 
 /**
- * Business context for card payment authentication.
+ * Business context for payment authentication using an account-level passkey.
  */
-export interface CardPaymentContext {
+export interface PaymentContext {
   paymentIntentId: string;
   amountMinor: number;
   currency: string;
   merchantId: string;
+  accountId?: string;
   orderId?: string;
   cardFingerprint?: string;
   acquirerReference?: string;
 }
+
+/**
+ * @deprecated Use `PaymentContext` instead. Kept for backward compatibility.
+ */
+export type CardPaymentContext = PaymentContext;
 
 /**
  * JSON representation of a WebAuthn credential descriptor.
@@ -173,7 +184,7 @@ export interface FinishAuthenticationInput {
  * Input for payment challenge request.
  */
 export interface BeginPaymentStepUpInput {
-  payment: CardPaymentContext;
+  payment: PaymentContext;
   userId?: string;
   context?: Record<string, unknown>;
   riskSignals?: RiskSignals;
@@ -183,7 +194,7 @@ export interface BeginPaymentStepUpInput {
  * Input for payment step-up verification request.
  */
 export interface FinishPaymentStepUpInput {
-  payment: CardPaymentContext;
+  payment: PaymentContext;
   credential: CredentialAssertionJSON;
   challengeId?: string;
   context?: Record<string, unknown>;
@@ -226,6 +237,7 @@ export interface AuthenticationVerificationResult {
  */
 export interface PaymentStepUpVerificationResult {
   decision: StepUpDecision;
+  code?: string;
   challengeId?: string;
   authValue?: string;
   eci?: string;
@@ -237,5 +249,4 @@ export interface PaymentStepUpVerificationResult {
  */
 export interface PaymentStepUpResult extends PaymentStepUpVerificationResult {
   usedPasskey: boolean;
-  shouldTrigger3DS: boolean;
 }

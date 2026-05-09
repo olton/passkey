@@ -27,9 +27,12 @@ let hasRegisteredPasskey = false;
 
 registerSensitiveBtn.addEventListener("click", () => {
   void runAction("register-passkey", async () => {
+    // Створюємо клієнт SDK з adapter до backend API.
     const client = createClient();
+    // Беремо username для реєстрації passkey на конкретний акаунт.
     const username = getUsername();
 
+    // Запускаємо registration ceremony: options -> WebAuthn create -> verify.
     const result = await client.register({
       user: {
         id: getUserId(),
@@ -45,8 +48,10 @@ registerSensitiveBtn.addEventListener("click", () => {
       },
     });
 
+    // Кешуємо користувача для UX і позначаємо локально, що passkey вже зареєстровано.
     cacheLastUser(username);
     cacheRegisteredPasskeyUser(username);
+    // Оновлюємо стан UI після успішної реєстрації.
     hasRegisteredPasskey = true;
     syncSensitiveActionButtons();
     setStatus("Passkey registered for sensitive vault.", "ok");
@@ -56,10 +61,14 @@ registerSensitiveBtn.addEventListener("click", () => {
 
 hideSensitiveBtn.addEventListener("click", () => {
   void runAction("hide-sensitive-data", async () => {
+    // Зчитуємо секрет, який потрібно захистити перед збереженням.
     const plainSecret = getSensitiveInput();
+    // Вимагаємо актуальну passkey-аутентифікацію для доступу до vault-операції.
     const sessionToken = await authenticateForSensitiveVault();
+    // Шифруємо значення на клієнті до відправки на backend.
     const encryptedPayload = await encryptSensitiveValue(plainSecret);
 
+    // Відправляємо лише зашифрований payload і токен сесії.
     const response = await postDemoJson("/demo/sensitive/store", {
       sessionToken,
       username: getUsername(),
@@ -75,13 +84,16 @@ hideSensitiveBtn.addEventListener("click", () => {
 
 revealSensitiveBtn.addEventListener("click", () => {
   void runAction("unlock-sensitive-data", async () => {
+    // Повторна passkey-перевірка перед розкриттям секретних даних.
     const sessionToken = await authenticateForSensitiveVault();
 
+    // Отримуємо зашифрований payload з backend-сховища.
     const payload = await postDemoJson("/demo/sensitive/reveal", {
       sessionToken,
       username: getUsername(),
     }) as SensitiveVaultPayload;
 
+    // Розшифровуємо локально і показуємо користувачу відкриті дані.
     const decrypted = await decryptSensitiveValue(payload);
     revealedData.value = decrypted;
     setStatus("Sensitive data unlocked after passkey verification.", "ok");
@@ -95,8 +107,10 @@ revealSensitiveBtn.addEventListener("click", () => {
 
 clearSensitiveBtn.addEventListener("click", () => {
   void runAction("clear-sensitive-data", async () => {
+    // Очищення vault теж захищаємо passkey-автентифікацією.
     const sessionToken = await authenticateForSensitiveVault();
 
+    // Викликаємо endpoint видалення даних для поточного користувача.
     const response = await postDemoJson("/demo/sensitive/clear", {
       sessionToken,
       username: getUsername(),
@@ -131,6 +145,7 @@ appendLog("Open this page: http://localhost:5173/sensitive.html");
  * Creates passkey client for this demo page.
  */
 function createClient() {
+  // Adapter інкапсулює HTTP-контракт з backend (begin/verify для passkey flow).
   const adapter = createFetchBackendAdapter({
     baseUrl: getValue("apiUrl"),
     defaultHeaders: {
@@ -138,6 +153,7 @@ function createClient() {
     },
   });
 
+  // Фасад клієнта централізує register/login церемонії для UI-коду.
   return createPasskeyClient({ adapter });
 }
 
@@ -145,11 +161,15 @@ function createClient() {
  * Authenticates user with passkey and returns session access token.
  */
 async function authenticateForSensitiveVault(): Promise<string> {
+  // Визначаємо користувача для якого виконується підтвердження доступу.
   const username = getUsername();
+  // Окремий клієнт для поточного кроку аутентифікації.
   const client = createClient();
 
+  // Даємо користувачу візуальний стан очікування WebAuthn assertion.
   setStatus("Waiting for passkey verification...", "pending");
 
+  // Authentication ceremony: options -> navigator.credentials.get -> verify.
   const result = await client.login({
     username,
     context: {
@@ -166,6 +186,7 @@ async function authenticateForSensitiveVault(): Promise<string> {
     throw new Error("Passkey verification failed.");
   }
 
+  // Дістаємо session token, який backend видає після успішної верифікації assertion.
   const sessionToken = result.session?.accessToken;
   if (!sessionToken) {
     throw new Error("Backend did not return access token.");
@@ -180,19 +201,24 @@ async function authenticateForSensitiveVault(): Promise<string> {
 async function encryptSensitiveValue(value: string): Promise<SensitiveVaultPayload> {
   ensureCryptoSupport();
 
+  // Кодуємо текст у байти перед симетричним шифруванням.
   const encoder = new TextEncoder();
+  // Генеруємо одноразовий AES-GCM ключ для цього payload.
   const key = await crypto.subtle.generateKey(
     { name: "AES-GCM", length: 256 },
     true,
     ["encrypt", "decrypt"],
   );
+  // Генеруємо випадковий IV; його треба зберігати разом із шифротекстом.
   const iv = crypto.getRandomValues(new Uint8Array(12));
 
+  // Шифруємо значення з прив'язкою до IV.
   const encrypted = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,
     encoder.encode(value),
   );
+  // Експортуємо ключ у raw-формат для демо-прикладу зворотного розшифрування.
   const rawKey = await crypto.subtle.exportKey("raw", key);
 
   return {
@@ -208,10 +234,12 @@ async function encryptSensitiveValue(value: string): Promise<SensitiveVaultPaylo
 async function decryptSensitiveValue(payload: SensitiveVaultPayload): Promise<string> {
   ensureCryptoSupport();
 
+  // Відновлюємо бінарні компоненти з base64url для Web Crypto.
   const iv = new Uint8Array(base64UrlToArrayBuffer(payload.iv));
   const keyBuffer = base64UrlToArrayBuffer(payload.keyMaterial);
   const cipherBuffer = base64UrlToArrayBuffer(payload.encryptedData);
 
+  // Імпортуємо ключ тільки для операції decrypt.
   const key = await crypto.subtle.importKey(
     "raw",
     keyBuffer,
@@ -219,6 +247,7 @@ async function decryptSensitiveValue(payload: SensitiveVaultPayload): Promise<st
     false,
     ["decrypt"],
   );
+  // Розшифровуємо ciphertext тим самим алгоритмом та IV.
   const decryptedBuffer = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv },
     key,
@@ -232,7 +261,9 @@ async function decryptSensitiveValue(payload: SensitiveVaultPayload): Promise<st
  * Posts JSON to dedicated demo endpoint.
  */
 async function postDemoJson(path: string, payload: Record<string, unknown>): Promise<unknown> {
+  // Нормалізуємо base URL, щоб уникнути подвійних слешів у запиті.
   const baseUrl = getValue("apiUrl").replace(/\/+$/, "");
+  // Уніфікований POST для серверних операцій демо vault.
   const response = await fetch(`${baseUrl}${path}`, {
     method: "POST",
     headers: {
@@ -242,6 +273,7 @@ async function postDemoJson(path: string, payload: Record<string, unknown>): Pro
     body: JSON.stringify(payload),
   });
 
+  // Декодуємо тіло відповіді перед обробкою помилок/успіху.
   const responseBody = await parseResponseBody(response);
   if (!response.ok) {
     throw new Error(

@@ -29,13 +29,20 @@ window.addEventListener("keydown", (event) => {
 
 savePasskeyBtn.addEventListener("click", () => {
   void runAction("password-login-and-register-passkey", async () => {
+    // Зчитуємо ідентифікатор користувача, з яким буде пов'язана нова passkey credential.
     const username = getUsername();
+    // Пароль у цьому демо використовується як попередній фактор перед реєстрацією passkey.
     const password = getPassword();
+    // Формуємо стабільний внутрішній userId, який бекенд використовує для прив'язки credential.
     const userId = deriveUserId(username);
 
+    // Імітуємо успішний password-крок до запуску WebAuthn реєстрації.
     await simulatePasswordLogin(username, password);
 
+    // Створюємо SDK-клієнт із backend adapter, який викличе begin/finish registration endpoints.
     const client = createClient();
+    // Запускаємо registration ceremony: SDK отримає challenge з бекенду, викличе WebAuthn у браузері
+    // і відправить attestation назад на verify endpoint.
     const result = await client.register({
       user: {
         id: userId,
@@ -51,8 +58,11 @@ savePasskeyBtn.addEventListener("click", () => {
       },
     });
 
+    // Кешуємо останній username для швидкого повторного входу в демо-сценарії.
     cacheLastUser(username);
+    // Прибираємо пароль після успішного enrollment, щоб не зберігати чутливі дані в полі.
     clearPassword();
+    // Явно показуємо, що passkey збережено в автентифікаторі поточного пристрою.
     setStatus("Passkey saved on this device (authenticator).", "ok");
 
     return result;
@@ -61,9 +71,12 @@ savePasskeyBtn.addEventListener("click", () => {
 
 passkeyLoginBtn.addEventListener("click", () => {
   void runAction("passkey-login", async () => {
+    // Беремо username, щоб бекенд міг знайти allowCredentials і згенерувати challenge для login.
     const username = getUsername();
+    // Повторно створюємо клієнт з тим самим adapter-конфігом до API.
     const client = createClient();
 
+    // Запускаємо authentication ceremony: options -> navigator.credentials.get -> verify.
     const result = await client.login({
       username,
       context: {
@@ -75,6 +88,7 @@ passkeyLoginBtn.addEventListener("click", () => {
       },
     });
 
+    // Оновлюємо UI-стан після позитивного результату перевірки на бекенді.
     setStatus("Passkey login completed.", "ok");
     return result;
   }, { showResultModal: true });
@@ -95,6 +109,7 @@ appendLog("Open this page: http://localhost:5173/login.html");
  * Creates passkey client for this demo page.
  */
 function createClient() {
+  // Adapter інкапсулює HTTP-контракт з бекендом (options/verify) для всіх passkey-операцій.
   const adapter = createFetchBackendAdapter({
     baseUrl: getValue("apiUrl"),
     defaultHeaders: {
@@ -102,6 +117,7 @@ function createClient() {
     },
   });
 
+  // PasskeyClient отримує adapter і оркеструє повну церемонію без прямого fetch у UI-коді.
   return createPasskeyClient({ adapter });
 }
 

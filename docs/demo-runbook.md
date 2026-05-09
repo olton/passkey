@@ -28,6 +28,7 @@ npm run dev
 - Login/password onboarding demo: `http://localhost:5173/login.html`
 - Sensitive data vault demo: `http://localhost:5173/sensitive.html`
 - Card payment step-up demo: `http://localhost:5173/card-pay.html`
+- Dedicated confirmPayment demo: `http://localhost:5173/payment-step-up/index.html`
 
 ## 3. Configure demo mode
 
@@ -53,7 +54,43 @@ npm run dev
 
 In both demo backends, payment amount above `100000` minor units returns `fallback_to_3ds`.
 
-## 6. Device setup details
+## 6. Payment enrollment-required check
+
+Both demo backends deterministically return enrollment-required backend error when
+`payment.accountId` starts with `unenrolled_` (or equals `account_without_passkey`).
+
+This is useful for end-to-end testing of: account OTP/verification -> passkey enrollment -> retry payment.
+
+Example payload fragment:
+
+```json
+{
+	"payment": {
+		"paymentIntentId": "pi_demo_1",
+		"amountMinor": 1500,
+		"currency": "UAH",
+		"merchantId": "merchant_1",
+		"accountId": "unenrolled_click2pay_demo"
+	}
+}
+```
+
+Optional: change prefix via env var before starting backend:
+
+```bash
+PASSKEY_DEMO_ENROLLMENT_REQUIRED_ACCOUNT_PREFIX=needs_enroll_ npm run server:device
+```
+
+In dedicated confirmPayment demo page, you can run full lifecycle from UI:
+
+1. Verify account (OTP mock)
+2. Complete first account payment (policy mock)
+3. Enroll account passkey
+4. Confirm payment with passkey
+
+Page: `http://localhost:5173/payment-step-up/index.html`
+
+## 7. Device setup details
 
 Use the platform-specific runbook for setup and troubleshooting:
 

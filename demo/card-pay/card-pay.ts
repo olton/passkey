@@ -3,12 +3,20 @@ import {
   createPasskeyClient,
   decrypt,
   encrypt,
-  type CardFormProps,
 } from "../../src/index";
 
 type CardBrand = "Visa" | "Mastercard";
 
-type ParsedCardForm = CardFormProps & {
+interface CardFormData {
+  cardNumber: string;
+  expirationMonth: string;
+  expirationYear: string;
+  cvc: string;
+  cardHolderName?: string;
+  email?: string;
+}
+
+type ParsedCardForm = CardFormData & {
   brand: CardBrand;
   last4: string;
   expiry: string;
@@ -61,13 +69,17 @@ window.addEventListener("keydown", (event) => {
 
 threeDsBtn.addEventListener("click", () => {
   void runAction("3ds-mock", async () => {
+    // Знімаємо поточний валідований snapshot картки для 3DS-челенджу.
     const card = readCardForm();
+    // Запускаємо модальне 3DS-підтвердження і чекаємо рішення користувача.
     const approved = await runThreeDsMock(card);
     if (!approved) {
       throw new Error("3DS mock declined.");
     }
 
+    // Фіксуємо, що 3DS пройдено для поточного snapshot реквізитів.
     is3DsCompleted = true;
+    // Прив'язуємо 3DS до конкретних полів картки, суми та валюти.
     threeDsFingerprint = buildThreeDsFingerprint(card);
     setStatus("3DS mock completed.", "ok");
     syncButtons();
@@ -81,15 +93,22 @@ threeDsBtn.addEventListener("click", () => {
 
 saveCardBtn.addEventListener("click", () => {
   void runAction("save-card-with-passkey", async () => {
+    // Пере-зчитуємо картку перед збереженням токена, щоб працювати з актуальними даними.
     const card = readCardForm();
+    // Не даємо зберегти токен без валідного 3DS для цього ж snapshot.
     ensure3DsForCurrentCard(card);
 
+    // Step-up через passkey перед операцією збереження картки.
     await ensurePasskeyAuthenticated("save-card");
 
+    // Шифруємо картку і будуємо безпечний об'єкт з masked-метаданими.
     const tokenObject = await buildStoredCardObject(card);
+    // Зберігаємо токен саме для поточного користувача.
     saveCardForCurrentUser(tokenObject);
+    // Відображаємо збережений об'єкт для демонстрації результату.
     renderStoredCardObject(tokenObject);
 
+    // Після збереження вважаємо, що токен існує, а попередній 3DS snapshot спожито.
     hasSavedCard = true;
     is3DsCompleted = false;
     threeDsFingerprint = null;
@@ -102,15 +121,20 @@ saveCardBtn.addEventListener("click", () => {
 
 payBtn.addEventListener("click", () => {
   void runAction("pay-with-passkey", async () => {
+    // Дістаємо раніше збережений токен картки для поточного username.
     const tokenObject = getSavedCardForCurrentUser();
     if (!tokenObject) {
       throw new Error("No saved card token for current user.");
     }
 
+    // Перед списанням завжди вимагаємо актуальне passkey-підтвердження.
     await ensurePasskeyAuthenticated("pay");
 
-    const decryptedCard = await decrypt<CardFormProps>(tokenObject.encryptedCard);
+    // Розшифровуємо payload токена лише після успішного step-up.
+    const decryptedCard = await decrypt<CardFormData>(tokenObject.encryptedCard);
+    // Беремо суму з UI і нормалізуємо до числа для mock-авторизації.
     const amountMinor = Number(getValue("amountMinor"));
+    // Мінімальна перевірка цілісності: валідна сума + збіг last4 з розшифрованою карткою.
     const isSuccessful = Number.isFinite(amountMinor) && amountMinor > 0
       && decryptedCard.cardNumber.endsWith(tokenObject.last4);
 
@@ -119,6 +143,7 @@ payBtn.addEventListener("click", () => {
       throw new Error("Payment declined by mock processor.");
     }
 
+    // Нормалізуємо валюту для консистентного відображення і відповіді.
     const currency = getValue("currency").toUpperCase();
     showPaymentResult(true, `Paid ${amountMinor} ${currency} with ${tokenObject.brand} ****${tokenObject.last4}.`);
     setStatus("Payment completed via passkey (no 3DS).", "ok");
@@ -188,6 +213,7 @@ syncButtons();
  * Creates passkey client for real-device flow.
  */
 function createClient() {
+  // Adapter ізолює HTTP-контракт до backend options/verify endpoint'ів.
   const adapter = createFetchBackendAdapter({
     baseUrl: getValue("apiUrl"),
     defaultHeaders: {
@@ -195,6 +221,7 @@ function createClient() {
     },
   });
 
+  // SDK-клієнт оркеструє passkey-церемонії поверх adapter без прямого fetch у UI.
   return createPasskeyClient({ adapter });
 }
 
@@ -202,11 +229,15 @@ function createClient() {
  * Ensures user has passkey and performs passkey authentication.
  */
 async function ensurePasskeyAuthenticated(reason: string): Promise<void> {
+  // Піднімаємо клієнт для одного auth-кроку в межах поточної дії.
   const client = createClient();
+  // Username використовується backend'ом для пошуку credentials і policy checks.
   const username = getUsername();
 
+  // Якщо локальної позначки реєстрації немає, робимо auto-register для демо.
   if (getRegisteredPasskeyUser() !== username.toLowerCase()) {
     appendLog("No local passkey enrollment marker. Running registration first.");
+    // Реєстраційна церемонія: begin options -> navigator.credentials.create -> verify.
     await client.register({
       user: {
         id: getValue("userId"),
@@ -222,10 +253,13 @@ async function ensurePasskeyAuthenticated(reason: string): Promise<void> {
       },
     });
 
+    // Кешуємо маркер, щоб не реєструвати passkey повторно при кожній дії.
     setRegisteredPasskeyUser(username);
   }
 
+  // Перед запуском assertion показуємо очікування на взаємодію з автентифікатором.
   setStatus("Waiting for passkey verification...", "pending");
+  // Логін-церемонія: begin options -> navigator.credentials.get -> verify.
   const loginResult = await client.login({
     username,
     context: {
@@ -247,13 +281,16 @@ async function ensurePasskeyAuthenticated(reason: string): Promise<void> {
  * Runs a 3DS mock challenge in modal dialog.
  */
 async function runThreeDsMock(card: ParsedCardForm): Promise<boolean> {
+  // Контекст челенджу (сума/валюта) беремо з UI на момент запуску 3DS.
   const amountMinor = Number(getValue("amountMinor"));
   const currency = getValue("currency").toUpperCase();
 
+  // Показуємо користувачу деталі челенджу для підтвердження/відхилення.
   threeDsText.textContent = `Challenge ${card.brand} ****${card.last4} for ${amountMinor} ${currency}. Approve?`;
   threeDsModal.classList.remove("hidden");
   document.body.classList.add("modal-open");
 
+  // Очікуємо одноразове рішення з модалки і перетворюємо його на boolean результат.
   const decision = await new Promise<boolean>((resolve) => {
     const onApprove = () => resolve(true);
     const onDecline = () => resolve(false);
@@ -271,7 +308,8 @@ async function runThreeDsMock(card: ParsedCardForm): Promise<boolean> {
  * Builds stored object with required fields.
  */
 async function buildStoredCardObject(card: ParsedCardForm): Promise<StoredCardObject> {
-  const encryptedCard = await encrypt<CardFormProps>({
+  // Шифруємо повні реквізити; у відкритому вигляді залишаємо лише безпечні метадані.
+  const encryptedCard = await encrypt<CardFormData>({
     cardNumber: card.cardNumber,
     expirationMonth: card.expirationMonth,
     expirationYear: card.expirationYear,
@@ -295,6 +333,7 @@ function ensure3DsForCurrentCard(card: ParsedCardForm): void {
     throw new Error("Complete 3DS mock before saving card token.");
   }
 
+  // Блокуємо збереження, якщо після 3DS змінилися критичні поля або контекст платежу.
   if (buildThreeDsFingerprint(card) !== threeDsFingerprint) {
     throw new Error("Card data changed after 3DS mock. Repeat step 2.");
   }
@@ -426,7 +465,9 @@ function clearSavedCardForCurrentUser(): void {
  * Refreshes UI state from existing saved card object.
  */
 function loadSavedCardForCurrentUser(): void {
+  // Підтягуємо токен картки для поточного username при перемиканні користувача/оновленні сторінки.
   const saved = getSavedCardForCurrentUser();
+  // Прапорець керує доступністю pay/clear кнопок.
   hasSavedCard = Boolean(saved);
 
   if (saved) {

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import {
+  StepUpDecision,
+} from "../../src/types";
 import type {
   BeginAuthenticationInput,
   BeginPaymentStepUpInput,
   BeginRegistrationInput,
-  StepUpDecision,
   WebClientScenario,
 } from "../../src/types";
 
@@ -35,13 +37,13 @@ describe("types module", () => {
       userId: "user_1",
     };
 
-    const decision: StepUpDecision = "approved";
+    const decision: StepUpDecision = StepUpDecision.EnrollmentRequired;
     const scenario: WebClientScenario = "payment-step-up";
 
     expect(registration.user.id).toBe("user_1");
     expect(authentication.purpose).toBe("login");
     expect(payment.payment.currency).toBe("UAH");
-    expect(decision).toBe("approved");
+    expect(decision).toBe(StepUpDecision.EnrollmentRequired);
     expect(scenario).toContain("payment");
   });
 });

@@ -7,6 +7,7 @@ import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from "../../src/types";
+import { StepUpDecision } from "../../src/types";
 
 const registrationOptions: PublicKeyCredentialCreationOptionsJSON = {
   challenge: "reg-challenge",
@@ -63,7 +64,7 @@ describe("PasskeyClient", () => {
       beginAuthentication: vi.fn().mockResolvedValue(authOptions),
       finishAuthentication: vi.fn().mockResolvedValue({ verified: true, levelOfAssurance: "high" }),
       beginPaymentStepUp: vi.fn().mockResolvedValue(paymentOptions),
-      finishPaymentStepUp: vi.fn().mockResolvedValue({ decision: "approved" }),
+      finishPaymentStepUp: vi.fn().mockResolvedValue({ decision: StepUpDecision.Approved }),
     };
 
     const webAuthn = {
@@ -89,7 +90,7 @@ describe("PasskeyClient", () => {
       username: "demo@example.com",
     });
 
-    const paymentResult = await client.confirmCardPayment({
+    const paymentResult = await client.confirmPayment({
       payment: {
         paymentIntentId: "pi_1",
         amountMinor: 1000,
@@ -107,7 +108,7 @@ describe("PasskeyClient", () => {
 
     expect(registrationResult.verified).toBe(true);
     expect(loginResult.verified).toBe(true);
-    expect(paymentResult.decision).toBe("approved");
+    expect(paymentResult.decision).toBe(StepUpDecision.Approved);
     expect(useCaseResult).toMatchObject({ verified: true });
 
     expect(adapter.beginRegistration).toHaveBeenCalledTimes(1);

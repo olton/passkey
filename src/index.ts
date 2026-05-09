@@ -8,3 +8,4 @@ export * from "./payments";
 export * from "./crypto";
 export * from "./use-cases";
 export * from "./core";
+export * from "./i18n";

@@ -14,7 +14,7 @@ Client method to endpoint mapping:
 2. `passkey.login(...)` and `passkey.confirmSensitiveAction(...)`
 - `POST /passkeys/authentication/options`
 - `POST /passkeys/authentication/verify`
-3. `passkey.confirmCardPayment(...)`
+3. `passkey.confirmPayment(...)`
 - `POST /passkeys/payments/options`
 - `POST /passkeys/payments/verify`
 
@@ -262,7 +262,8 @@ Field notes:
     "paymentIntentId": "pi_01",
     "amountMinor": 45000,
     "currency": "UAH",
-    "merchantId": "merchant_demo"
+    "merchantId": "merchant_demo",
+    "accountId": "click2pay_account_42"
   },
   "userId": "user_1001",
   "riskSignals": {
@@ -278,8 +279,13 @@ Field notes:
 - `amountMinor`: amount in minor units (for example cents).
 - `currency`: ISO currency code.
 - `merchantId`: merchant/account identifier for policy checks.
+- `accountId`: optional payment account identifier (for example Mastercard Click to Pay profile).
 - `userId`: user who attempts payment confirmation.
 - `riskSignals`: optional risk context for fallback/step-up decisions.
+
+Model note:
+
+- Passkey is enrolled once for the payment account (typically after account OTP/identity verification) and reused for subsequent payments across all cards in that account.
 
 ### Response
 
@@ -343,6 +349,7 @@ Field notes:
 ```json
 {
   "decision": "approved",
+  "code": "approved",
   "challengeId": "f76f13d4-1d26-486a-a165-693c3af4b53d",
   "authValue": "AAVV...",
   "eci": "05",
@@ -352,7 +359,8 @@ Field notes:
 
 Field notes:
 
-- `decision`: final backend decision (`approved`, `fallback_to_3ds`, `rejected`).
+- `decision`: final backend decision (`approved`, `fallback_to_3ds`, `rejected`, `enrollment_required`).
+- `code`: optional machine-readable branch code for frontend flows.
 - `challengeId`: echoed challenge reference for traceability/audit.
 - `authValue`: optional payment authentication value for downstream rails.
 - `eci`: optional e-commerce indicator for card processing.
@@ -363,6 +371,7 @@ Possible values for `decision`:
 - `approved`
 - `fallback_to_3ds`
 - `rejected`
+- `enrollment_required`
 
 ## Backend validation checklist
 

@@ -1,0 +1,13 @@
+export default {
+    'errors.passkeyNotSupported': 'This browser does not support passkeys.',
+    'errors.userCancelled': 'Passkey ceremony was cancelled by the user.',
+    'errors.webauthn.registrationNotPublicKeyCredential': 'WebAuthn registration did not return PublicKeyCredential.',
+    'errors.webauthn.authenticationNotPublicKeyCredential': 'WebAuthn authentication did not return PublicKeyCredential.',
+    'errors.webauthn.unknown': 'Unknown WebAuthn error.',
+    'errors.crypto.webCryptoUnavailable': 'Web Crypto API is not available in this browser.',
+    'errors.base64.decoderUnavailable': 'No base64 decoder is available in this runtime.',
+    'errors.base64.encoderUnavailable': 'No base64 encoder is available in this runtime.',
+    'errors.useCases.unsupportedScenario': 'Unsupported scenario payload',
+    'payments.stepUp.passkeyNotSupported': 'Browser does not support passkeys, fallback to 3DS is required.',
+    'payments.stepUp.enrollmentRequired': 'No enrolled payment passkey found for this account. Follow backend/product policy for verification, enrollment, or fallback.',
+} as const;
