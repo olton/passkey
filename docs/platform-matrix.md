@@ -22,7 +22,7 @@ This document explains what "platform authenticator" usually means on each opera
 
 Linux has no single equivalent to Windows Hello that is consistently available everywhere.
 
-For a practical setup baseline, use [docs/linux-ubuntu-24-04-demo.md](docs/linux-ubuntu-24-04-demo.md).
+For a practical setup baseline, use [docs/linux-demo.md](docs/linux-demo.md).
 
 What this means in practice:
 

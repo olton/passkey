@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { randomUUID } from 'node:crypto';
 import process from 'node:process';
 import { termx } from '@olton/terminal';
-import { DEFAULT_PASSKEY_BACKEND_ENDPOINTS } from '../src';
+import { DEFAULT_CARD_TOKEN_PASSKEY_BACKEND_ENDPOINTS, DEFAULT_PASSKEY_BACKEND_ENDPOINTS } from '../src';
 
 const PORT = Number(process.env['PASSKEY_WEBAUTHN_PORT'] ?? 4100);
 const RP_ID = process.env['PASSKEY_WEBAUTHN_RP_ID'] ?? 'localhost';
@@ -12,7 +12,7 @@ const SESSION_TTL_MS = Number(process.env['PASSKEY_WEBAUTHN_SESSION_TTL_MS'] ?? 
 const ENROLLMENT_REQUIRED_ACCOUNT_PREFIX = process.env['PASSKEY_DEMO_ENROLLMENT_REQUIRED_ACCOUNT_PREFIX'] ?? 'unenrolled_';
 
 interface ChallengeRecord {
-    kind: 'registration' | 'authentication' | 'payment';
+    kind: 'registration' | 'authentication' | 'payment' | 'card_payment' | 'card_enrollment';
     createdAt: number;
     userId?: string;
     username?: string;
@@ -33,12 +33,7 @@ interface SensitiveVaultRecord {
 
 const ROUTES = {
     ...DEFAULT_PASSKEY_BACKEND_ENDPOINTS,
-    // registrationOptions: "/passkeys/registration/options",
-    // registrationVerify: "/passkeys/registration/verify",
-    // authenticationOptions: "/passkeys/authentication/options",
-    // authenticationVerify: "/passkeys/authentication/verify",
-    // paymentOptions: "/passkeys/payments/options",
-    // paymentVerify: "/passkeys/payments/verify",
+    ...DEFAULT_CARD_TOKEN_PASSKEY_BACKEND_ENDPOINTS,
     sensitiveStore: '/demo/sensitive/store',
     sensitiveReveal: '/demo/sensitive/reveal',
     sensitiveClear: '/demo/sensitive/clear',
@@ -51,6 +46,14 @@ const ROUTES_DESCRIPTIONS = {
     '/passkeys/authentication/verify': 'Verifies authentication assertion payload.',
     '/passkeys/payments/options': 'Provides payment challenge with required user verification.',
     '/passkeys/payments/verify': 'Verifies payment step-up assertion payload.',
+    '/passkeys/card-payments/options': 'Provides card/token step-up challenge.',
+    '/passkeys/card-payments/verify': 'Verifies card/token step-up assertion payload.',
+    '/passkeys/card-payments/authorize': 'Returns gateway status for card/token checkout.',
+    '/passkeys/card-payments/passkey/enroll/options': 'Provides card/token enrollment challenge.',
+    '/passkeys/card-payments/passkey/enroll/verify': 'Verifies card/token enrollment attestation.',
+    '/demo/sensitive/store': 'Stores encrypted sensitive payload for authenticated session.',
+    '/demo/sensitive/reveal': 'Returns encrypted sensitive payload for authenticated session.',
+    '/demo/sensitive/clear': 'Deletes encrypted sensitive payload for authenticated session.',
 } as const;
 
 const challengeStore = new Map<string, ChallengeRecord>();
@@ -185,6 +188,31 @@ function handleRoute(path: string, body: Record<string, unknown> | null, respons
 
     if (path === ROUTES.finishPaymentStepUp) {
         handlePaymentVerify(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.beginCardTokenStepUp) {
+        handleCardPaymentOptions(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.finishCardTokenStepUp) {
+        handleCardPaymentVerify(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.authorizeCardTokenPayment) {
+        handleCardPaymentAuthorize(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.beginCardTokenEnrollment) {
+        handleCardPasskeyEnrollOptions(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.finishCardTokenEnrollment) {
+        handleCardPasskeyEnrollVerify(body, response);
         return true;
     }
 
@@ -402,6 +430,139 @@ function handlePaymentVerify(body: Record<string, unknown> | null, response: Ser
 }
 
 /**
+ * Handles card/token step-up options endpoint.
+ */
+function handleCardPaymentOptions(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const instrument = getCardInstrument(body);
+    if (!instrument) {
+        sendJson(response, 400, {
+            error: 'instrument.type with tokenId/cardFingerprint is required',
+        });
+        return;
+    }
+
+    const challengeId = randomUUID();
+    challengeStore.set(challengeId, {
+        kind: 'card_payment',
+        createdAt: Date.now(),
+    });
+
+    sendJson(response, 200, {
+        challenge: randomChallenge(),
+        challengeId,
+        rpId: RP_ID,
+        timeout: 60000,
+        userVerification: 'required',
+        instrument,
+    });
+}
+
+/**
+ * Handles card/token step-up verification endpoint.
+ */
+function handleCardPaymentVerify(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const challengeId = typeof body?.['challengeId'] === 'string' ? body['challengeId'] : '';
+    if (!verifyChallenge(response, challengeId, 'card_payment') || response.writableEnded) {
+        return;
+    }
+
+    const payment = body?.['payment'] as Record<string, unknown> | undefined;
+    const amountMinor = Number(payment?.['amountMinor'] ?? 0);
+    const shouldFallback = Number.isFinite(amountMinor) && amountMinor > 100000;
+
+    sendJson(response, 200, {
+        authDecision: shouldFallback ? 'fallback_to_3ds' : 'approved',
+        challengeId,
+        code: shouldFallback ? 'amount_threshold' : 'ok',
+        message: shouldFallback ? 'Amount threshold exceeded, fallback to 3DS.' : 'Card/token step-up approved.',
+    });
+}
+
+/**
+ * Handles card/token payment authorization endpoint.
+ */
+function handleCardPaymentAuthorize(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const payment = body?.['payment'] as Record<string, unknown> | undefined;
+    const paymentIntentId = asString(payment?.['paymentIntentId'])?.toLowerCase() ?? '';
+    const amountMinor = Number(payment?.['amountMinor'] ?? 0);
+
+    let gatewayStatus: 'success' | 'declined' | 'declined_fraud' | 'error' = 'success';
+    if (paymentIntentId.includes('fraud')) {
+        gatewayStatus = 'declined_fraud';
+    } else if (paymentIntentId.includes('declined')) {
+        gatewayStatus = 'declined';
+    } else if (paymentIntentId.includes('error') || (Number.isFinite(amountMinor) && amountMinor > 200000)) {
+        gatewayStatus = 'error';
+    }
+
+    sendJson(response, 200, {
+        gatewayStatus,
+        code: gatewayStatus === 'success' ? 'authorized' : `gateway_${gatewayStatus}`,
+        reason: gatewayStatus === 'success' ? undefined : `device_demo_${gatewayStatus}`,
+        message:
+            gatewayStatus === 'success'
+                ? 'Payment authorized in card/token flow.'
+                : `Payment finished with status: ${gatewayStatus}.`,
+    });
+}
+
+/**
+ * Handles card/token passkey enrollment options endpoint.
+ */
+function handleCardPasskeyEnrollOptions(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const user = getUserFromPayload(body);
+    const challengeId = randomUUID();
+
+    challengeStore.set(challengeId, {
+        kind: 'card_enrollment',
+        createdAt: Date.now(),
+        userId: user.id,
+        username: user.username,
+    });
+
+    sendJson(response, 200, {
+        challenge: randomChallenge(),
+        challengeId,
+        rp: {
+            id: RP_ID,
+            name: RP_NAME,
+        },
+        user: {
+            id: encodeBase64Url(user.id),
+            name: user.username,
+            displayName: user.displayName,
+        },
+        pubKeyCredParams: [
+            { type: 'public-key', alg: -7 },
+            { type: 'public-key', alg: -257 },
+        ],
+        timeout: 60000,
+        authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            residentKey: 'required',
+            userVerification: 'required',
+        },
+        attestation: 'none',
+    });
+}
+
+/**
+ * Handles card/token passkey enrollment verification endpoint.
+ */
+function handleCardPasskeyEnrollVerify(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const challengeId = typeof body?.['challengeId'] === 'string' ? body['challengeId'] : '';
+    if (!verifyChallenge(response, challengeId, 'card_enrollment') || response.writableEnded) {
+        return;
+    }
+
+    sendJson(response, 200, {
+        outcome: 'bound',
+        code: 'enrolled',
+        message: 'Card/token passkey enrollment completed in WebAuthn demo backend.',
+    });
+}
+
+/**
  * Stores encrypted sensitive payload behind passkey-authenticated session.
  */
 function handleSensitiveStore(body: Record<string, unknown> | null, response: ServerResponse): void {
@@ -598,6 +759,26 @@ function getAuthIdentityFromPayload(payload: Record<string, unknown> | null): {
  */
 function deriveUserIdFromUsername(username: string): string {
     return `usr_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+}
+
+/**
+ * Extracts card/token instrument from payload when valid.
+ */
+function getCardInstrument(payload: Record<string, unknown> | null): { type: 'card' | 'token'; tokenId?: string; cardFingerprint?: string } | null {
+    const instrument = payload && typeof payload['instrument'] === 'object' && payload['instrument'] !== null ? (payload['instrument'] as Record<string, unknown>) : null;
+    const type = asString(instrument?.['type']);
+
+    if (type === 'token') {
+        const tokenId = asString(instrument?.['tokenId']);
+        return tokenId ? { type: 'token', tokenId } : null;
+    }
+
+    if (type === 'card') {
+        const cardFingerprint = asString(instrument?.['cardFingerprint']);
+        return cardFingerprint ? { type: 'card', cardFingerprint } : null;
+    }
+
+    return null;
 }
 
 /**

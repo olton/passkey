@@ -17,6 +17,12 @@ Client method to endpoint mapping:
 3. `passkey.confirmPayment(...)`
 - `POST /passkeys/payments/options`
 - `POST /passkeys/payments/verify`
+4. `passkey.confirmCardCheckout(...)` and `passkey.enrollCardPasskey(...)`
+- `POST /passkeys/card-payments/options`
+- `POST /passkeys/card-payments/verify`
+- `POST /passkeys/card-payments/authorize`
+- `POST /passkeys/card-payments/passkey/enroll/options`
+- `POST /passkeys/card-payments/passkey/enroll/verify`
 
 Demo servers in this repository are examples of this contract, not a required backend runtime.
 
@@ -372,6 +378,240 @@ Possible values for `decision`:
 - `fallback_to_3ds`
 - `rejected`
 - `enrollment_required`
+
+## 7) Begin card/token step-up
+
+- Endpoint: `POST /passkeys/card-payments/options`
+
+### Request
+
+```json
+{
+  "payment": {
+    "paymentIntentId": "pi_card_01",
+    "amountMinor": 2500,
+    "currency": "UAH",
+    "merchantId": "merchant_demo"
+  },
+  "instrument": {
+    "type": "token",
+    "tokenId": "tok_abc_01"
+  },
+  "userId": "user_1001",
+  "riskSignals": {
+    "trustedDevice": true
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "challenge": "b2Q4...",
+  "challengeId": "f5f4f561-0cc1-45af-8f72-8c0c06bbce44",
+  "rpId": "example.com",
+  "userVerification": "required",
+  "timeout": 60000
+}
+```
+
+Field notes:
+
+- `instrument.type`: `token` or `card`.
+- For `token`, provide `instrument.tokenId`.
+- For `card`, provide `instrument.cardFingerprint`.
+
+## 8) Finish card/token step-up
+
+- Endpoint: `POST /passkeys/card-payments/verify`
+
+### Request
+
+```json
+{
+  "challengeId": "f5f4f561-0cc1-45af-8f72-8c0c06bbce44",
+  "payment": {
+    "paymentIntentId": "pi_card_01",
+    "amountMinor": 2500,
+    "currency": "UAH",
+    "merchantId": "merchant_demo"
+  },
+  "instrument": {
+    "type": "token",
+    "tokenId": "tok_abc_01"
+  },
+  "credential": {
+    "id": "credential-id",
+    "rawId": "...",
+    "type": "public-key",
+    "response": {
+      "clientDataJSON": "...",
+      "authenticatorData": "...",
+      "signature": "...",
+      "userHandle": "..."
+    },
+    "clientExtensionResults": {}
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "authDecision": "approved",
+  "challengeId": "f5f4f561-0cc1-45af-8f72-8c0c06bbce44",
+  "code": "ok",
+  "message": "Card/token step-up approved."
+}
+```
+
+Possible `authDecision` values:
+
+- `approved`
+- `fallback_to_3ds`
+- `rejected`
+- `timeout`
+- `cancelled`
+- `not_supported`
+- `error`
+
+## 9) Authorize card/token payment
+
+- Endpoint: `POST /passkeys/card-payments/authorize`
+
+### Request
+
+```json
+{
+  "payment": {
+    "paymentIntentId": "pi_card_01",
+    "amountMinor": 2500,
+    "currency": "UAH",
+    "merchantId": "merchant_demo"
+  },
+  "instrument": {
+    "type": "token",
+    "tokenId": "tok_abc_01"
+  },
+  "challengeId": "f5f4f561-0cc1-45af-8f72-8c0c06bbce44"
+}
+```
+
+### Response
+
+```json
+{
+  "gatewayStatus": "success",
+  "code": "authorized",
+  "message": "Payment authorized in card/token flow."
+}
+```
+
+Possible `gatewayStatus` values:
+
+- `success`
+- `declined`
+- `declined_fraud`
+- `error`
+
+## 10) Begin card/token passkey enrollment
+
+- Endpoint: `POST /passkeys/card-payments/passkey/enroll/options`
+
+### Request
+
+```json
+{
+  "payment": {
+    "paymentIntentId": "pi_card_01",
+    "amountMinor": 2500,
+    "currency": "UAH",
+    "merchantId": "merchant_demo"
+  },
+  "instrument": {
+    "type": "token",
+    "tokenId": "tok_abc_01"
+  },
+  "user": {
+    "id": "user_1001",
+    "username": "demo@example.com",
+    "displayName": "Demo User"
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "challenge": "n5Qx...",
+  "challengeId": "0d9ba2dd-3fea-40c5-a072-6d9c7a09e3d3",
+  "rp": { "id": "example.com", "name": "Example" },
+  "user": {
+    "id": "dXNlcl8xMDAx",
+    "name": "demo@example.com",
+    "displayName": "Demo User"
+  },
+  "pubKeyCredParams": [
+    { "type": "public-key", "alg": -7 },
+    { "type": "public-key", "alg": -257 }
+  ],
+  "timeout": 60000,
+  "attestation": "none"
+}
+```
+
+## 11) Finish card/token passkey enrollment
+
+- Endpoint: `POST /passkeys/card-payments/passkey/enroll/verify`
+
+### Request
+
+```json
+{
+  "challengeId": "0d9ba2dd-3fea-40c5-a072-6d9c7a09e3d3",
+  "payment": {
+    "paymentIntentId": "pi_card_01",
+    "amountMinor": 2500,
+    "currency": "UAH",
+    "merchantId": "merchant_demo"
+  },
+  "instrument": {
+    "type": "token",
+    "tokenId": "tok_abc_01"
+  },
+  "userId": "user_1001",
+  "credential": {
+    "id": "credential-id",
+    "rawId": "...",
+    "type": "public-key",
+    "response": {
+      "clientDataJSON": "...",
+      "attestationObject": "...",
+      "transports": ["internal"]
+    },
+    "clientExtensionResults": {}
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "outcome": "bound",
+  "code": "enrolled",
+  "message": "Card/token passkey enrollment completed."
+}
+```
+
+Possible `outcome` values:
+
+- `bound`
+- `skipped_by_user`
+- `failed`
 
 ## Backend validation checklist
 

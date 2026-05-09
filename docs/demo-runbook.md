@@ -90,11 +90,55 @@ In account-service demo page, you can run full lifecycle from UI:
 
 Page: `http://localhost:5173/account-service/index.html`
 
-## 7. Device setup details
+## 7. Card-service gateway status QA triggers
+
+Both demo backends support deterministic gateway outcomes for card-service checkout.
+
+Use `payment.paymentIntentId` markers (or high amount for `error`) in card-service demo:
+
+- `*fraud*` -> `gatewayStatus = declined_fraud`
+- `*declined*` -> `gatewayStatus = declined`
+- `*error*` -> `gatewayStatus = error`
+- `amountMinor > 200000` -> `gatewayStatus = error`
+- otherwise -> `gatewayStatus = success`
+
+Examples:
+
+```json
+{
+	"payment": {
+		"paymentIntentId": "pi_demo_fraud_1",
+		"amountMinor": 2500,
+		"currency": "UAH",
+		"merchantId": "merchant_1"
+	},
+	"instrument": {
+		"type": "token",
+		"tokenId": "tok_demo_1"
+	}
+}
+```
+
+```json
+{
+	"payment": {
+		"paymentIntentId": "pi_demo_ok_1",
+		"amountMinor": 250001,
+		"currency": "UAH",
+		"merchantId": "merchant_1"
+	},
+	"instrument": {
+		"type": "card",
+		"cardFingerprint": "fp_demo_1"
+	}
+}
+```
+
+## 8. Device setup details
 
 Use the platform-specific runbook for setup and troubleshooting:
 
 - Windows: [docs/windows-hello.md](docs/windows-hello.md)
 - Android: [docs/android-demo.md](docs/android-demo.md)
 - iOS: [docs/ios-demo.md](docs/ios-demo.md)
-- Linux (Ubuntu 24.04): [docs/linux-ubuntu-24-04-demo.md](docs/linux-ubuntu-24-04-demo.md)
+- Linux: [docs/linux-demo.md](docs/linux-demo.md)

@@ -9,17 +9,22 @@ const RP_NAME = 'Passkey Demo RP';
 const ENROLLMENT_REQUIRED_ACCOUNT_PREFIX = process.env['PASSKEY_DEMO_ENROLLMENT_REQUIRED_ACCOUNT_PREFIX'] ?? 'unenrolled_';
 
 interface ChallengeRecord {
-    kind: 'registration' | 'authentication' | 'payment';
+    kind: 'registration' | 'authentication' | 'payment' | 'card_payment' | 'card_enrollment';
     createdAt: number;
 }
 
 const ROUTES = {
-    registrationOptions: ['/passkeys/registration/options', 'Provides options for passkey registration, including challenge and user info.', 'Registration Options'],
-    registrationVerify: ['/passkeys/registration/verify', 'Verifies the registration of a passkey.', 'Registration Verify'],
-    authenticationOptions: ['/passkeys/authentication/options', 'Provides options for passkey authentication, including challenge and user info.', 'Authentication Options'],
-    authenticationVerify: ['/passkeys/authentication/verify', 'Verifies the authentication of a passkey.', 'Authentication Verify'],
-    paymentOptions: ['/passkeys/payments/options', 'Provides options for passkey payment, including challenge and user info.', 'Payment Options'],
-    paymentVerify: ['/passkeys/payments/verify', 'Verifies the payment of a passkey.', 'Payment Verify'],
+    registrationOptions: ['/passkeys/registration/options', 'Provides options for passkey registration, including challenge and user info.'],
+    registrationVerify: ['/passkeys/registration/verify', 'Verifies the registration of a passkey.'],
+    authenticationOptions: ['/passkeys/authentication/options', 'Provides options for passkey authentication, including challenge and user info.'],
+    authenticationVerify: ['/passkeys/authentication/verify', 'Verifies the authentication of a passkey.'],
+    paymentOptions: ['/passkeys/payments/options', 'Provides options for passkey payment, including challenge and user info.'],
+    paymentVerify: ['/passkeys/payments/verify', 'Verifies the payment of a passkey.'],
+    cardPaymentOptions: ['/passkeys/card-payments/options', 'Provides options for card/token checkout step-up.'],
+    cardPaymentVerify: ['/passkeys/card-payments/verify', 'Verifies card/token checkout step-up assertion.'],
+    cardPaymentAuthorize: ['/passkeys/card-payments/authorize', 'Returns final gateway status for card/token checkout.'],
+    cardPasskeyEnrollOptions: ['/passkeys/card-payments/passkey/enroll/options', 'Provides card/token passkey enrollment options.'],
+    cardPasskeyEnrollVerify: ['/passkeys/card-payments/passkey/enroll/verify', 'Verifies card/token passkey enrollment.'],
 } as const;
 
 const challengeStore = new Map<string, ChallengeRecord>();
@@ -66,7 +71,7 @@ server.listen(PORT, () => {
     console.log(`[mock-api] Passkey mock backend is running on http://localhost:${PORT}`);
     console.log(`[mock-api] Enrollment-required account prefix: ${ENROLLMENT_REQUIRED_ACCOUNT_PREFIX}`);
     console.log('[mock-api] Endpoints:');
-    for (const [, [path, , description]] of Object.entries(ROUTES)) {
+    for (const [, [path, description]] of Object.entries(ROUTES)) {
         console.log(`  ${termx.bold.cyanBright.write(path)} - ${termx.gray.write(description)}`);
     }
 });
@@ -148,6 +153,31 @@ function handleRoute(path: string, body: Record<string, unknown> | null, respons
 
     if (path === ROUTES.paymentVerify[0]) {
         handlePaymentVerify(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.cardPaymentOptions[0]) {
+        handleCardPaymentOptions(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.cardPaymentVerify[0]) {
+        handleCardPaymentVerify(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.cardPaymentAuthorize[0]) {
+        handleCardPaymentAuthorize(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.cardPasskeyEnrollOptions[0]) {
+        handleCardPasskeyEnrollOptions(body, response);
+        return true;
+    }
+
+    if (path === ROUTES.cardPasskeyEnrollVerify[0]) {
+        handleCardPasskeyEnrollVerify(body, response);
         return true;
     }
 
@@ -348,6 +378,157 @@ function handlePaymentVerify(body: Record<string, unknown> | null, response: Ser
             message: shouldFallback ? 'Amount threshold exceeded, fallback to 3DS.' : 'Payment approved with passkey step-up.',
         });
     }
+}
+
+/**
+ * Handles card/token step-up options endpoint.
+ */
+function handleCardPaymentOptions(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const instrument = getCardInstrument(body);
+    if (!instrument) {
+        sendJson(response, 400, {
+            error: 'instrument.type with tokenId/cardFingerprint is required',
+        });
+        return;
+    }
+
+    const challengeId = randomUUID();
+    challengeStore.set(challengeId, {
+        kind: 'card_payment',
+        createdAt: Date.now(),
+    });
+
+    sendJson(response, 200, {
+        challenge: randomChallenge(),
+        challengeId,
+        rpId: RP_ID,
+        timeout: 60000,
+        userVerification: 'required',
+        instrument,
+    });
+}
+
+/**
+ * Handles card/token step-up verification endpoint.
+ */
+function handleCardPaymentVerify(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const challengeId = typeof body?.['challengeId'] === 'string' ? body['challengeId'] : '';
+    verifyChallenge(response, challengeId, 'card_payment');
+    if (response.writableEnded) {
+        return;
+    }
+
+    const payment = body?.['payment'] as Record<string, unknown> | undefined;
+    const amountMinor = Number(payment?.['amountMinor'] ?? 0);
+    const shouldFallback = Number.isFinite(amountMinor) && amountMinor > 100000;
+
+    sendJson(response, 200, {
+        authDecision: shouldFallback ? 'fallback_to_3ds' : 'approved',
+        challengeId,
+        code: shouldFallback ? 'amount_threshold' : 'ok',
+        message: shouldFallback ? 'Amount threshold exceeded, fallback to 3DS.' : 'Card/token step-up approved.',
+    });
+}
+
+/**
+ * Handles card/token payment authorization endpoint.
+ */
+function handleCardPaymentAuthorize(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const payment = body?.['payment'] as Record<string, unknown> | undefined;
+    const paymentIntentId = asString(payment?.['paymentIntentId'])?.toLowerCase() ?? '';
+    const amountMinor = Number(payment?.['amountMinor'] ?? 0);
+
+    let gatewayStatus: 'success' | 'declined' | 'declined_fraud' | 'error' = 'success';
+    if (paymentIntentId.includes('fraud')) {
+        gatewayStatus = 'declined_fraud';
+    } else if (paymentIntentId.includes('declined')) {
+        gatewayStatus = 'declined';
+    } else if (paymentIntentId.includes('error') || (Number.isFinite(amountMinor) && amountMinor > 200000)) {
+        gatewayStatus = 'error';
+    }
+
+    sendJson(response, 200, {
+        gatewayStatus,
+        code: gatewayStatus === 'success' ? 'authorized' : `gateway_${gatewayStatus}`,
+        reason: gatewayStatus === 'success' ? undefined : `mock_${gatewayStatus}`,
+        message:
+            gatewayStatus === 'success'
+                ? 'Payment authorized in card/token flow.'
+                : `Payment finished with status: ${gatewayStatus}.`,
+    });
+}
+
+/**
+ * Handles card/token passkey enrollment options endpoint.
+ */
+function handleCardPasskeyEnrollOptions(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const user = getUserFromPayload(body);
+    const challengeId = randomUUID();
+    challengeStore.set(challengeId, {
+        kind: 'card_enrollment',
+        createdAt: Date.now(),
+    });
+
+    sendJson(response, 200, {
+        challenge: randomChallenge(),
+        challengeId,
+        rp: {
+            id: RP_ID,
+            name: RP_NAME,
+        },
+        user: {
+            id: encodeBase64Url(user.id),
+            name: user.username,
+            displayName: user.displayName,
+        },
+        pubKeyCredParams: [
+            { type: 'public-key', alg: -7 },
+            { type: 'public-key', alg: -257 },
+        ],
+        timeout: 60000,
+        authenticatorSelection: {
+            residentKey: 'preferred',
+            userVerification: 'preferred',
+        },
+        attestation: 'none',
+    });
+}
+
+/**
+ * Handles card/token passkey enrollment verification endpoint.
+ */
+function handleCardPasskeyEnrollVerify(body: Record<string, unknown> | null, response: ServerResponse): void {
+    const challengeId = typeof body?.['challengeId'] === 'string' ? body['challengeId'] : '';
+    verifyChallenge(response, challengeId, 'card_enrollment');
+    if (response.writableEnded) {
+        return;
+    }
+
+    sendJson(response, 200, {
+        outcome: 'bound',
+        code: 'enrolled',
+        message: 'Card/token passkey enrollment completed in mock backend.',
+    });
+}
+
+/**
+ * Extracts card/token instrument from payload when valid.
+ */
+function getCardInstrument(payload: Record<string, unknown> | null): { type: 'card' | 'token'; tokenId?: string; cardFingerprint?: string } | null {
+    const instrument = payload && typeof payload['instrument'] === 'object' && payload['instrument'] !== null ? (payload['instrument'] as Record<string, unknown>) : null;
+    const type = asString(instrument?.['type']);
+
+    if (type === 'token') {
+        const tokenId = asString(instrument?.['tokenId']);
+        return tokenId ? { type: 'token', tokenId } : null;
+    }
+
+    if (type === 'card') {
+        const cardFingerprint = asString(instrument?.['cardFingerprint']);
+        return cardFingerprint ? { type: 'card', cardFingerprint } : null;
+    }
+
+    return null;
 }
 
 /**
